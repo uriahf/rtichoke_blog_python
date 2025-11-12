@@ -1,0 +1,12 @@
+[project]
+name = "rtichoke-blog-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "rtichoke>=0.1.16",
+]
+
+[dependency-groups]
+dev = []

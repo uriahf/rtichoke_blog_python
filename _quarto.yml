@@ -1,0 +1,33 @@
+project:
+  type: website
+
+website:
+  description: "A blog built with Quarto"
+  site-url: https://your-website-url.example.com # you must change this appropriately for RSS feeds to work properly
+  navbar:
+    right:
+      - text: Python examples
+        href: index.qmd
+      - text: R examples
+        href: https://rtichoke-blog.netlify.app/posts
+      - text: About Me
+        href: https://rtichoke-blog.netlify.app/about_me
+      - icon: github
+        href: https://github.com/uriahf/rtichoke_python
+      - icon: twitter
+        href: https://twitter.com/finkeluriah
+      - icon: facebook
+        href: https://www.facebook.com/groups/rforthemasses
+      - icon: linkedin
+        href: https://www.linkedin.com/in/uriah-finkel
+      - icon: telegram
+        href: https://t.me/as_if_uriah
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+
+
+
