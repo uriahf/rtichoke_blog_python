@@ -1,1 +1,12 @@
 /* css styles */
+/* Prevent Quarto from shrinking/stretching Plotly containers */
+.plotly, .plotly-html-widget, .js-plotly-plot {
+  max-width: none !important;
+  width: fit-content !important;
+  height: fit-content !important;
+}
+
+/* Prevent cell output wrapper from overriding aspect ratio */
+.cell-output-display {
+  max-width: none !important;
+}
