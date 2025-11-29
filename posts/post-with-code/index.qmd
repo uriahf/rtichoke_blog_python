@@ -49,7 +49,7 @@ from rtichoke import create_roc_curve
 create_roc_curve(
     {"train": y_proba_train, "test": y_proba_test},
     {"train": y_train, "test": y_test},
-    size=500
+    size=400
 )
 
 ```
