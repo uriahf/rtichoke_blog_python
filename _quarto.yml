@@ -3,7 +3,7 @@ project:
 
 website:
   description: "A blog built with Quarto"
-  site-url: https://your-website-url.example.com # you must change this appropriately for RSS feeds to work properly
+  site-url: https://uriahf.github.io/rtichoke_blog_python/
   navbar:
     right:
       - text: Python examples
