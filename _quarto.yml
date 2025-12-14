@@ -5,6 +5,8 @@ website:
   description: "A blog built with Quarto"
   site-url: https://uriahf.github.io/rtichoke_blog_python/
   navbar:
+    title: rtichoke blog
+    logo-href: https://rtichoke-blog.netlify.app/
     right:
       - text: Python examples
         href: index.qmd
