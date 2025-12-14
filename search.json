@@ -14,17 +14,17 @@
     "text": "About this blog"
   },
   {
-    "objectID": "posts/post-with-code/index.html",
-    "href": "posts/post-with-code/index.html",
+    "objectID": "posts/breast_cancer_example/index.html",
+    "href": "posts/breast_cancer_example/index.html",
     "title": "Breast Cancer",
     "section": "",
     "text": "The following example is inspried by the scikit-learn documentation displaying a prediction of Breast Cancer and the ROC curve for both Train and Test sets."
   },
   {
-    "objectID": "posts/post-with-code/index.html#load-data-and-fit-a-logistic-regression",
-    "href": "posts/post-with-code/index.html#load-data-and-fit-a-logistic-regression",
+    "objectID": "posts/breast_cancer_example/index.html#load-data-and-fit-a-logistic-regression",
+    "href": "posts/breast_cancer_example/index.html#load-data-and-fit-a-logistic-regression",
     "title": "Breast Cancer",
     "section": "Load data and fit a Logistic Regression",
-    "text": "Load data and fit a Logistic Regression\n\nfrom sklearn.datasets import load_breast_cancer\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import PrecisionRecallDisplay\nimport matplotlib.pyplot as plt\n\n# Load data\nX, y = load_breast_cancer(return_X_y=True)\n\n# Split\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.3, random_state=42\n)\n\n# Fit model\nclf = LogisticRegression(max_iter=5000)\nclf.fit(X_train, y_train)\n\n# Predict probabilities\ny_proba_test = clf.predict_proba(X_test)[:, 1]\ny_proba_train = clf.predict_proba(X_train)[:, 1]\n\n\nrtichokescikit-learn\n\n\n\nimport plotly.io as pio\npio.renderers.default = \"plotly_mimetype+notebook_connected\"\nfrom rtichoke import create_roc_curve\n\nroc_curve = create_roc_curve(\n    {\"train\": y_proba_train, \"test\": y_proba_test},\n    {\"train\": y_train, \"test\": y_test},\n    size=500\n)\n\nroc_curve.update_layout(showlegend=False)\n\nroc_curve.show()\n\n                                                \n\n\n\n\n\nfrom sklearn.metrics import RocCurveDisplay\nimport matplotlib.pyplot as plt\n\nfig, ax = plt.subplots(figsize=(6, 5))\n\n# Plot ROC curves\nroc_test = RocCurveDisplay.from_predictions(\n    y_test, y_proba_test, name=\"Test\", ax=ax\n)\nroc_train = RocCurveDisplay.from_predictions(\n    y_train, y_proba_train, name=\"Train\", ax=ax\n)\n\n# Add separate chance-level (diagonal)\nax.plot([0, 1], [0, 1], \"k--\", lw=1, alpha=0.6)\n\n# Transparent background for Quarto / HTML\nax.set_facecolor(\"none\")\nfig.patch.set_alpha(0)\n\nax.set_title(\"ROC Curve — Logistic Regression\")\nplt.tight_layout()\nplt.show()"
+    "text": "Load data and fit a Logistic Regression\n\nfrom sklearn.datasets import load_breast_cancer\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import PrecisionRecallDisplay\nimport matplotlib.pyplot as plt\n\n# Load data\nX, y = load_breast_cancer(return_X_y=True)\n\n# Split\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.3, random_state=42\n)\n\n# Fit model\nclf = LogisticRegression(max_iter=5000)\nclf.fit(X_train, y_train)\n\n# Predict probabilities\ny_proba_test = clf.predict_proba(X_test)[:, 1]\ny_proba_train = clf.predict_proba(X_train)[:, 1]\n\n\nrtichokescikit-learn\n\n\n\nimport plotly.io as pio\npio.renderers.default = \"plotly_mimetype+notebook_connected\"\nfrom rtichoke import create_roc_curve\n\ncreate_roc_curve(\n    {\"train\": y_proba_train, \"test\": y_proba_test},\n    {\"train\": y_train, \"test\": y_test},\n    size=400\n)\n\n                                                \n\n\n\n\n\nfrom sklearn.metrics import RocCurveDisplay\nimport matplotlib.pyplot as plt\n\nfig, ax = plt.subplots(figsize=(6, 5))\n\n# Plot ROC curves\nroc_test = RocCurveDisplay.from_predictions(\n    y_test, y_proba_test, name=\"Test\", ax=ax\n)\nroc_train = RocCurveDisplay.from_predictions(\n    y_train, y_proba_train, name=\"Train\", ax=ax\n)\n\n# Add separate chance-level (diagonal)\nax.plot([0, 1], [0, 1], \"k--\", lw=1, alpha=0.6)\n\n# Transparent background for Quarto / HTML\nax.set_facecolor(\"none\")\nfig.patch.set_alpha(0)\n\nax.set_title(\"ROC Curve — Logistic Regression\")\nplt.tight_layout()\nplt.show()"
   }
 ]
