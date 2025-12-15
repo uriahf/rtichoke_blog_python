@@ -3,6 +3,7 @@ title: "Breast Cancer"
 author: "Uriah Finkel"
 date: "2025-11-10"
 categories: [roc, scikit-learn]
+draft: true
 ---
 
 The following example is inspried by the scikit-learn documentation displaying a prediction of Breast Cancer and the ROC curve for both Train and Test sets.
