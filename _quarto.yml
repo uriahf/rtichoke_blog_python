@@ -12,12 +12,12 @@ website:
         href: index.qmd
       - text: R examples
         href: https://rtichoke-blog.netlify.app/posts
+      - text: Talks
+        href: https://rtichoke-blog.netlify.app/talks.qmd
       - text: About Me
         href: https://rtichoke-blog.netlify.app/about_me
       - icon: github
         href: https://github.com/uriahf/rtichoke_python
-      - text: Talks
-        href: https://rtichoke-blog.netlify.app/talks.qmd
       - icon: twitter
         href: https://twitter.com/finkeluriah
       - icon: facebook
