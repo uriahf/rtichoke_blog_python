@@ -1,23 +1,44 @@
 [
   {
-    "objectID": "posts/breast_cancer_example/index.html",
-    "href": "posts/breast_cancer_example/index.html",
-    "title": "Breast Cancer",
-    "section": "",
-    "text": "The following example is inspried by the scikit-learn documentation displaying a prediction of Breast Cancer and the ROC curve for both Train and Test sets."
-  },
-  {
-    "objectID": "posts/breast_cancer_example/index.html#load-data-and-fit-a-logistic-regression",
-    "href": "posts/breast_cancer_example/index.html#load-data-and-fit-a-logistic-regression",
-    "title": "Breast Cancer",
-    "section": "Load data and fit a Logistic Regression",
-    "text": "Load data and fit a Logistic Regression\n\nfrom sklearn.datasets import load_breast_cancer\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import PrecisionRecallDisplay\nimport matplotlib.pyplot as plt\n\n# Load data\nX, y = load_breast_cancer(return_X_y=True)\n\n# Split\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.3, random_state=42\n)\n\n# Fit model\nclf = LogisticRegression(max_iter=5000)\nclf.fit(X_train, y_train)\n\n# Predict probabilities\ny_proba_test = clf.predict_proba(X_test)[:, 1]\ny_proba_train = clf.predict_proba(X_train)[:, 1]\n\n\nrtichokescikit-learn\n\n\n\nimport plotly.io as pio\npio.renderers.default = \"plotly_mimetype+notebook_connected\"\nfrom rtichoke import create_roc_curve\n\ncreate_roc_curve(\n    {\"train\": y_proba_train, \"test\": y_proba_test},\n    {\"train\": y_train, \"test\": y_test},\n    size=400\n)\n\n                                                \n\n\n\n\n\nfrom sklearn.metrics import RocCurveDisplay\nimport matplotlib.pyplot as plt\n\nfig, ax = plt.subplots(figsize=(6, 5))\n\n# Plot ROC curves\nroc_test = RocCurveDisplay.from_predictions(\n    y_test, y_proba_test, name=\"Test\", ax=ax\n)\nroc_train = RocCurveDisplay.from_predictions(\n    y_train, y_proba_train, name=\"Train\", ax=ax\n)\n\n# Add separate chance-level (diagonal)\nax.plot([0, 1], [0, 1], \"k--\", lw=1, alpha=0.6)\n\n# Transparent background for Quarto / HTML\nax.set_facecolor(\"none\")\nfig.patch.set_alpha(0)\n\nax.set_title(\"ROC Curve — Logistic Regression\")\nplt.tight_layout()\nplt.show()"
-  },
-  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Python Examples",
     "section": "",
-    "text": "Breast Cancer\n\n\n\nroc\n\nscikit-learn\n\n\n\n\n\n\n\n\n\nNov 10, 2025\n\n\nUriah Finkel\n\n\n\n\n\nNo matching items"
+    "text": "Decision Curves with Fixed Time Horizons\n\n\n\nDecision\n\nTime-Horizons\n\n\n\n\n\n\n\n\n\nDec 15, 2025\n\n\nUriah Finkel\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html",
+    "href": "posts/dca_with_fixed_time_horizons/index.html",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "",
+    "text": "rtichoke for Python introduces support for fixed time horizons, allowing flexible specification of the prediction horizon and automatically updating performance plots accordingly."
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#the-most-under-discussed-design-choice-in-prediction-models-the-time-horizon",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#the-most-under-discussed-design-choice-in-prediction-models-the-time-horizon",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "The most under-discussed design choice in prediction models: The Time Horizon",
+    "text": "The most under-discussed design choice in prediction models: The Time Horizon\nPrediction models require a well-defined fixed time horizon: The end of follow-up over which the outcome probability is defined. A probability of dying within 1 week, 1 year, or 100 years represents fundamentally different clinical questions and very different implied decision contexts.\nIt is therefore important to explore the sensitivity of model performance to the choice of time horizon: Shorter horizons typically yield fewer observed events, resulting in smaller gaps between the two baseline strategies “treat all” (Everyone is considered Predicted Positive) and “treat none” (everyone is considered Predicted Negative).\nIn contrast, longer horizons may introduce ambiguity through censoring (loss to follow-up) or competing events (events that preclude the primary outcome)."
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#pragmatic-approach-performance-sensitivity-analysis-with-rtichoke",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#pragmatic-approach-performance-sensitivity-analysis-with-rtichoke",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "Pragmatic approach: Performance Sensitivity Analysis with rtichoke",
+    "text": "Pragmatic approach: Performance Sensitivity Analysis with rtichoke\nYou do not need to develop a new or more complex model to overcome these problems, first you need to ensure if there’s a problem at all and for which time horizons:\nYou can reuse predictions trained for a specific horizon and evaluate their robustness across alternative fixed time horizons: This allows you to assess how performance changes as the effective follow-up window varies without retraining the model."
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#load-data-and-fit-a-cox-regression",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#load-data-and-fit-a-cox-regression",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "Load data and fit a Cox Regression",
+    "text": "Load data and fit a Cox Regression\n\nimport pandas as pd\nimport lifelines\n\ndf_time_to_cancer_dx = pd.read_csv(\n    \"https://raw.githubusercontent.com/ddsjoberg/dca-tutorial/main/data/df_time_to_cancer_dx.csv\"\n)\n\ncph = lifelines.CoxPHFitter()\ncph.fit(\n    df=df_time_to_cancer_dx,\n    duration_col=\"ttcancer\",\n    event_col=\"cancer\",\n    formula=\"age + famhistory + marker\",\n)\n\ncph_pred_vals = cph.predict_survival_function(\n    df_time_to_cancer_dx[[\"age\", \"famhistory\", \"marker\"]], times=[1.5]\n)\n\ndf_time_to_cancer_dx[\"pr_failure18\"] = [1 - val for val in cph_pred_vals.iloc[0, :]]"
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#decision-curve-with-multiple-fixed-time-horizons",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#decision-curve-with-multiple-fixed-time-horizons",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "Decision Curve with Multiple Fixed Time Horizons",
+    "text": "Decision Curve with Multiple Fixed Time Horizons\nThe fixed_time_horizons argument allows you to explicitly define the set of follow-up horizons to evaluate.\n\nfrom rtichoke import create_decision_curve_times\n\ncreate_decision_curve_times(\n    probs={\"full\": df_time_to_cancer_dx[\"pr_failure18\"]},\n    reals=df_time_to_cancer_dx[\"cancer\"],\n    times=df_time_to_cancer_dx[\"ttcancer\"],\n    fixed_time_horizons=[0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]\n)"
   }
 ]
