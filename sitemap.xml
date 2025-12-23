@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://uriahf.github.io/rtichoke_blog_python/index.html</loc>
-    <lastmod>2025-12-15T16:46:22.663Z</lastmod>
+    <loc>https://uriahf.github.io/rtichoke_blog_python/AGENTS.html</loc>
+    <lastmod>2025-12-23T16:04:49.967Z</lastmod>
   </url>
   <url>
     <loc>https://uriahf.github.io/rtichoke_blog_python/posts/dca_with_fixed_time_horizons/index.html</loc>
-    <lastmod>2025-12-15T16:46:22.664Z</lastmod>
+    <lastmod>2025-12-23T16:04:49.968Z</lastmod>
+  </url>
+  <url>
+    <loc>https://uriahf.github.io/rtichoke_blog_python/index.html</loc>
+    <lastmod>2025-12-23T16:04:49.967Z</lastmod>
   </url>
 </urlset>
