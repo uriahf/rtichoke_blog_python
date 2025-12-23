@@ -1,6 +1,7 @@
 project:
   type: website
 
+author: "Uriah Finkel"
 website:
   description: "A blog built with Quarto"
   site-url: https://uriahf.github.io/rtichoke_blog_python/
