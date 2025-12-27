@@ -77,7 +77,7 @@ y_proba_svc_sigmoid = svc_sigmoid.predict_proba(X_test)[:, 1]
 
 ## `rtichoke` Workaround
 
-The current version of `rtichoke` has a bug where the calibration plot does not respect the order of the deciles. This is because the data is sorted by decile number instead of the mean predicted probability. The following code provides a workaround for this issue by manually calculating the calibration curve data and plotting it with `plotly`.
+The `rtichoke` library correctly calculates calibration deciles based on quantile binning, which is standard practice. However, this can sometimes lead to a visual artifact where the connecting line on the plot appears disordered. This happens because while the deciles are ordered, the *mean predicted probability* within each bin is not guaranteed to be strictly monotonic. If the mean of a later decile is slightly lower than a preceding one, the line will appear to go 'backwards.' The workaround below manually calculates the calibration data and sorts it by the mean predicted probability before plotting, ensuring the x-axis is always monotonic and the plot is visually intuitive.
 
 ```{python}
 import polars as pl
