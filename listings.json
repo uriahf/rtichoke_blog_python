@@ -2,7 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/dca_with_fixed_time_horizons/index.html"
+      "/posts/dca_with_fixed_time_horizons/index.html",
+      "/posts/calibration_curve/index.html"
     ]
   }
 ]
