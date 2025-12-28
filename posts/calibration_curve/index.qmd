@@ -5,6 +5,7 @@ date: "2024-05-15"
 description: "An example of creating a calibration curve using rtichoke and scikit-learn."
 categories: [calibration, scikit-learn]
 draft: false
+image: "image.png"
 ---
 
 The following example is inspired by the [scikit-learn documentation displaying a calibration curve](https://scikit-learn.org/stable/auto_examples/calibration/plot_calibration_curve.html).
