@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "lifelines>=0.30.0",
     "matplotlib>=3.10.7",
-    "rtichoke>=0.1.27",
+    "rtichoke>=0.1.28",
     "scikit-learn>=1.7.2",
 ]
 
