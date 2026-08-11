@@ -1,26 +1,5 @@
 [
   {
-    "objectID": "AGENTS.html",
-    "href": "AGENTS.html",
-    "title": "AGENTS.md",
-    "section": "",
-    "text": "This document outlines the standards and conventions for creating and maintaining this Quarto blog. Following these guidelines will ensure consistency, improve search engine optimization (SEO), and streamline the content creation process.\n\n\nEach new blog post must be contained within its own subdirectory inside the posts/ directory. The subdirectory name should be a shortened, URL-friendly version of the post’s title (e.g., using-r-with-quarto).\nEach post subdirectory must contain an index.qmd file, which will serve as the main content file for the post. Any images or other assets associated with the post should be placed in the same subdirectory.\n\n\n\nThe following metadata fields are required in the YAML front matter of each index.qmd file:\n\ntitle: The title of the blog post.\nauthor: The name of the author.\ndate: The date the post was published, in YYYY-MM-DD format.\ndescription: A brief, one-sentence summary of the post’s content. This is crucial for SEO, as it will be used as the meta description for the page.\ncategories: A list of relevant categories for the post.\n\n\n\n---\ntitle: \"My New Blog Post\"\nauthor: \"John Doe\"\ndate: \"2024-01-01\"\ndescription: \"This is a brief summary of my new blog post.\"\ncategories:\n  - R\n  - Quarto\n  - Data Science\n---"
-  },
-  {
-    "objectID": "AGENTS.html#blog-post-structure",
-    "href": "AGENTS.html#blog-post-structure",
-    "title": "AGENTS.md",
-    "section": "",
-    "text": "Each new blog post must be contained within its own subdirectory inside the posts/ directory. The subdirectory name should be a shortened, URL-friendly version of the post’s title (e.g., using-r-with-quarto).\nEach post subdirectory must contain an index.qmd file, which will serve as the main content file for the post. Any images or other assets associated with the post should be placed in the same subdirectory."
-  },
-  {
-    "objectID": "AGENTS.html#metadata-standards",
-    "href": "AGENTS.html#metadata-standards",
-    "title": "AGENTS.md",
-    "section": "",
-    "text": "The following metadata fields are required in the YAML front matter of each index.qmd file:\n\ntitle: The title of the blog post.\nauthor: The name of the author.\ndate: The date the post was published, in YYYY-MM-DD format.\ndescription: A brief, one-sentence summary of the post’s content. This is crucial for SEO, as it will be used as the meta description for the page.\ncategories: A list of relevant categories for the post.\n\n\n\n---\ntitle: \"My New Blog Post\"\nauthor: \"John Doe\"\ndate: \"2024-01-01\"\ndescription: \"This is a brief summary of my new blog post.\"\ncategories:\n  - R\n  - Quarto\n  - Data Science\n---"
-  },
-  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Python Examples",
