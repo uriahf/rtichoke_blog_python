@@ -1,0 +1,203 @@
+---
+title: "Beyond the AUC: the Steyerberg framework in Python"
+author: "Uriah Finkel"
+date: "2026-08-11"
+description: "Use rtichoke to walk through discrimination, calibration, and clinical utility following Steyerberg et al.'s framework for evaluating prediction models."
+categories:
+  - rtichoke
+  - Python
+  - Clinical Prediction
+  - Prediction Models
+  - ROC
+  - Calibration
+  - Decision Curves
+jupyter: python3
+---
+
+In 2010, Steyerberg, Vickers, Cook, Gerds, Gonen, Obuchowski, Pencina, and Kattan published a useful framework for thinking about prediction-model performance: **do not reduce model evaluation to a single number**.
+
+Their paper, [*Assessing the Performance of Prediction Models: A Framework for Traditional and Novel Measures*](https://pmc.ncbi.nlm.nih.gov/articles/PMC3575184/), discusses several families of performance measures. The core message is still highly practical: discrimination and calibration answer different questions, and decision-analytic measures are needed when predictions will actually be used to make decisions.
+
+This post translates that workflow into a compact Python example with `rtichoke`.
+
+> This is a reproduction of the **evaluation framework**, not of the paper's original testicular-cancer numerical results. The paper's companion R code and data are available from [clinicalpredictionmodels.org](https://www.clinicalpredictionmodels.org/presentations/code-with-papers). Here we use a dataset bundled with scikit-learn so the example is completely reproducible from this page.
+
+## Setup
+
+We will compare two logistic-regression models for predicting malignant breast cancer. The first deliberately uses only two predictors; the second uses the full feature set.
+
+```{python}
+#| message: false
+#| warning: false
+
+import numpy as np
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import brier_score_loss, roc_auc_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+from rtichoke import (
+    create_calibration_curve,
+    create_decision_curve,
+    create_roc_curve,
+)
+```
+
+```{python}
+data = load_breast_cancer()
+X = data.data
+
+# sklearn encodes malignant as 0 and benign as 1.
+# Flip the target so that the event of interest is malignancy.
+y = 1 - data.target
+
+X_train, X_valid, y_train, y_valid = train_test_split(
+    X,
+    y,
+    test_size=0.30,
+    random_state=2026,
+    stratify=y,
+)
+
+baseline_columns = [0, 1]  # mean radius, mean texture
+
+baseline_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(max_iter=2_000),
+)
+full_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(max_iter=2_000),
+)
+
+baseline_model.fit(X_train[:, baseline_columns], y_train)
+full_model.fit(X_train, y_train)
+
+baseline_prob = baseline_model.predict_proba(
+    X_valid[:, baseline_columns]
+)[:, 1]
+full_prob = full_model.predict_proba(X_valid)[:, 1]
+
+probs = {
+    "Baseline model": baseline_prob,
+    "Full model": full_prob,
+}
+```
+
+The important object for the rest of the analysis is simply a dictionary of predicted probabilities plus the observed binary outcomes. `rtichoke` does not care how those predictions were produced.
+
+## 1. Overall performance
+
+Steyerberg et al. discuss the Brier score as an overall measure of prediction error. Lower is better, with perfect probabilistic predictions reaching zero.
+
+```{python}
+for name, p in probs.items():
+    print(
+        f"{name}: "
+        f"AUC={roc_auc_score(y_valid, p):.3f}, "
+        f"Brier={brier_score_loss(y_valid, p):.3f}"
+    )
+```
+
+A summary statistic is useful, but it does not tell us *why* one set of predictions is better than another. That is where the decomposition into discrimination, calibration, and utility becomes useful.
+
+## 2. Discrimination: can the model rank patients?
+
+The ROC curve asks how well predictions separate patients with and without the outcome across thresholds. The area under the curve is a ranking measure: it does not tell us whether a predicted risk of 30% really means a 30% event probability.
+
+```{python}
+create_roc_curve(
+    probs=probs,
+    reals=y_valid,
+)
+```
+
+This is why a high AUC is not a complete model evaluation. A model can rank patients well while producing probabilities that are systematically too high or too low.
+
+## 3. Calibration: do the probabilities mean what they say?
+
+Calibration compares predicted probabilities with observed outcome frequencies. This is a different property from discrimination and should be inspected directly.
+
+```{python}
+create_calibration_curve(
+    probs=probs,
+    reals=y_valid,
+    calibration_type="smooth",
+)
+```
+
+The histogram under the calibration curve is useful here: it shows where the predictions actually live. Calibration behavior in a region with almost no patients should not be interpreted in the same way as calibration where predictions are dense.
+
+A useful mental model is:
+
+- **Discrimination:** who is at higher risk?
+- **Calibration:** how much risk?
+
+Those are related questions, but they are not interchangeable.
+
+## 4. Clinical utility: should we act on the predictions?
+
+The paper also emphasizes decision-analytic measures when a model is intended to guide clinical decisions. Decision curve analysis expresses performance as **net benefit** across threshold probabilities.
+
+Suppose a clinician would act when predicted malignancy risk exceeds some threshold. Different thresholds encode different relative costs of false-positive and false-negative decisions.
+
+```{python}
+create_decision_curve(
+    probs=probs,
+    reals=y_valid,
+    min_p_threshold=0.01,
+    max_p_threshold=0.50,
+)
+```
+
+This plot answers a question that neither AUC nor calibration answers directly:
+
+> Over the range of thresholds that matter for the decision, does using the model produce more benefit than default strategies?
+
+A model can therefore have attractive discrimination and still offer little clinical value at the thresholds that matter in practice.
+
+## 5. The same decision curve as interventions avoided
+
+Net benefit is compact but can feel abstract. `rtichoke` can show the same decision problem using the interventions-avoided representation.
+
+```{python}
+create_decision_curve(
+    probs=probs,
+    reals=y_valid,
+    decision_type="interventions avoided",
+    min_p_threshold=0.01,
+    max_p_threshold=0.50,
+)
+```
+
+This is often easier to communicate: instead of asking only whether the model has positive net benefit, we can ask how many unnecessary interventions could be avoided while preserving the decision-theoretic trade-off represented by the threshold.
+
+## A practical evaluation sequence
+
+The Steyerberg framework suggests a useful order for model evaluation:
+
+1. **Overall performance** gives a compact summary of prediction error.
+2. **Discrimination** asks whether the model separates higher-risk from lower-risk patients.
+3. **Calibration** asks whether predicted probabilities are numerically trustworthy.
+4. **Clinical utility** asks whether acting on those predictions improves decisions.
+
+The important point is not that every project needs every possible metric. It is that each metric answers a different question.
+
+For `rtichoke`, that leads to a deliberately simple workflow:
+
+```{python}
+#| eval: false
+
+create_roc_curve(probs=probs, reals=y_valid)
+create_calibration_curve(probs=probs, reals=y_valid)
+create_decision_curve(probs=probs, reals=y_valid)
+```
+
+Fit the model however you want. Then evaluate the predictions from several complementary perspectives.
+
+## Reference
+
+Steyerberg EW, Vickers AJ, Cook NR, Gerds T, Gonen M, Obuchowski N, Pencina MJ, Kattan MW. *Assessing the performance of prediction models: a framework for traditional and novel measures.* Epidemiology. 2010;21(1):128-138. DOI: [10.1097/EDE.0b013e3181c30fb2](https://doi.org/10.1097/EDE.0b013e3181c30fb2).
