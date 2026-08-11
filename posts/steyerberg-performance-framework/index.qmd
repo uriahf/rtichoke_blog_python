@@ -6,6 +6,7 @@ description: "Use rtichoke to walk through discrimination, calibration, and clin
 categories:
   - rtichoke
   - Python
+  - Clinical Prediction
   - Prediction Models
   - ROC
   - Calibration
