@@ -168,6 +168,17 @@ overall_calibration = pd.DataFrame(
 overall_calibration
 ```
 
+## Validation against R
+
+The pull-request workflow independently reproduces the analysis with R's `survival` package. It fits the same Cox model with `survival::coxph()`, predicts risk at years one through five with `survival::survfit()`, and calculates every within-decile observed risk with a separate `survival::survfit()` call.
+
+| Comparison | Values checked | Maximum absolute difference |
+|---|---:|---:|
+| Individual Cox risks: Python `lifelines` versus R `survival` | 3,430 | 0.0006341 |
+| Local observed risks: `rtichoke` versus R `1 - survfit` | 50 | $4.996 \times 10^{-16}$ |
+
+The small Cox-prediction difference reflects numerical details in the two Cox implementations and is less than seven ten-thousandths in absolute risk. The local Kaplan–Meier calibration estimates agree to floating-point precision. This second comparison directly validates the censoring correction plotted above—not merely the whole-cohort Kaplan–Meier estimate.
+
 ## What `adjusted` assumes
 
 The correction identifies the calibration curve under independent right censoring. Informally, after accounting for whatever structure is used in the estimator, people censored at a given time should have the same subsequent event prospects as comparable people still followed. Administrative censoring at a fixed study end is the cleanest example.
