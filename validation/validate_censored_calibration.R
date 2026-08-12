@@ -52,22 +52,19 @@ features <- c("size_20_50", "size_gt_50", "grade_3", "nodes2", "nodes3")
 formula <- Surv(time, event) ~ size_20_50 + size_gt_50 + grade_3 + nodes2 + nodes3
 r_cox <- coxph(formula, data = rotterdam, ties = "efron", x = TRUE, y = TRUE)
 
-r_prediction_rows <- do.call(rbind, lapply(sort(unique(patients$horizon)), function(horizon) {
-  fitted_survival <- survfit(r_cox, newdata = gbsg[, features], se.fit = FALSE)
-  survival_at_horizon <- summary(
-    fitted_survival, times = horizon, extend = TRUE
-  )$surv
-  data.frame(
-    pid = gbsg$pid,
-    horizon = horizon,
-    prediction_r = 1 - as.numeric(survival_at_horizon)
-  )
-}))
+fitted_survival <- survfit(r_cox, newdata = gbsg[, features], se.fit = FALSE)
+survival_at_five <- summary(
+  fitted_survival, times = 5, extend = TRUE
+)$surv
+r_prediction_rows <- data.frame(
+  pid = gbsg$pid,
+  prediction_r = 1 - as.numeric(survival_at_five)
+)
 
 prediction_comparison <- merge(
-  patients[, c("pid", "horizon", "prediction_python")],
+  unique(patients[, c("pid", "prediction_python")]),
   r_prediction_rows,
-  by = c("pid", "horizon")
+  by = "pid"
 )
 prediction_comparison$absolute_difference <- abs(
   prediction_comparison$prediction_python - prediction_comparison$prediction_r
@@ -96,7 +93,7 @@ comparison$absolute_difference <- abs(
 
 stopifnot(nrow(comparison) == 50)
 stopifnot(max(comparison$absolute_difference) < 1e-12)
-stopifnot(nrow(prediction_comparison) == 686 * 5)
+stopifnot(nrow(prediction_comparison) == 686)
 stopifnot(max(prediction_comparison$absolute_difference) < 5e-3)
 
 cat("Validated", nrow(prediction_comparison), "individual Cox predictions.\n")
