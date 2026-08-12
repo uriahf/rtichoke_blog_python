@@ -69,7 +69,9 @@ def main() -> None:
     development, validation = prepare_data()
     features = ["size_20_50", "size_gt_50", "grade_3", "nodes2", "nodes3"]
     cox = CoxPHFitter().fit(development, duration_col="time", event_col="event")
-    survival = cox.predict_survival_function(validation[features], times=HORIZONS)
+    prediction = (
+        1 - cox.predict_survival_function(validation[features], times=[5.0]).iloc[0]
+    ).to_numpy()
 
     patient_rows = []
     point_rows = []
@@ -80,7 +82,6 @@ def main() -> None:
         }
     ]
     for horizon in HORIZONS:
-        prediction = (1 - survival.loc[horizon]).to_numpy()
         # This is the same rank-based grouping used internally by rtichoke.
         ranks = pd.Series(prediction).rank(method="average").to_numpy()
         decile = np.floor((ranks - 1) * 10 / len(prediction)).astype(int) + 1
@@ -103,15 +104,16 @@ def main() -> None:
             )
         )
 
-        figure = create_calibration_curve_times(
-            probs={"Rotterdam Cox model": prediction},
-            reals=validation["event"].to_numpy(),
-            times=validation["time"].to_numpy(),
-            fixed_time_horizons=[horizon],
-            heuristics_sets=heuristics,
-            calibration_type="discrete",
-        )
-        calibration_trace = figure.data[1]
+    figure = create_calibration_curve_times(
+        probs={"Rotterdam Cox model": prediction},
+        reals=validation["event"].to_numpy(),
+        times=validation["time"].to_numpy(),
+        fixed_time_horizons=HORIZONS,
+        heuristics_sets=heuristics,
+        calibration_type="discrete",
+    )
+    for horizon_index, horizon in enumerate(HORIZONS):
+        calibration_trace = figure.data[1 + horizon_index * 3]
         point_rows.extend(
             {
                 "horizon": horizon,
