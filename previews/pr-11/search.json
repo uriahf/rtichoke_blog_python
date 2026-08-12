@@ -35,6 +35,13 @@
     "text": "A direct check against Kaplan–Meier\nFor the whole validation cohort, the same mathematics should reproduce one minus the Kaplan–Meier estimate at every horizon. This is a useful invariant to test when implementing the estimator.\n\nkm = KaplanMeierFitter().fit(validation[\"time\"], validation[\"event\"])\noverall_calibration = pd.DataFrame(\n    [\n        {\n            \"horizon (years)\": horizon,\n            \"observed risk (1 - KM)\": 1 - float(km.predict(horizon)),\n            \"mean predicted risk\": predicted_risk[horizon].mean(),\n            \"observed / expected\": (\n                (1 - float(km.predict(horizon))) / predicted_risk[horizon].mean()\n            ),\n        }\n        for horizon in prediction_horizons\n    ]\n)\noverall_calibration\n\n\n\n\n\n\n\n\nhorizon (years)\nobserved risk (1 - KM)\nmean predicted risk\nobserved / expected\n\n\n\n\n0\n1.0\n0.084442\n0.103890\n0.812803\n\n\n1\n2.0\n0.253769\n0.253433\n1.001326\n\n\n2\n3.0\n0.357380\n0.362706\n0.985315\n\n\n3\n4.0\n0.441152\n0.439770\n1.003142\n\n\n4\n5.0\n0.508355\n0.499584\n1.017557"
   },
   {
+    "objectID": "posts/calibration_with_censored_observations/index.html#validation-against-r",
+    "href": "posts/calibration_with_censored_observations/index.html#validation-against-r",
+    "title": "Calibration Curves with Censored Observations",
+    "section": "Validation against R",
+    "text": "Validation against R\nThe pull-request workflow independently reproduces the analysis with R’s survival package. It fits the same Cox model with survival::coxph(), predicts risk at years one through five with survival::survfit(), and calculates every within-decile observed risk with a separate survival::survfit() call.\n\n\n\n\n\n\n\n\nComparison\nValues checked\nMaximum absolute difference\n\n\n\n\nIndividual Cox risks: Python lifelines versus R survival\n3,430\n0.0006341\n\n\nLocal observed risks: rtichoke versus R 1 - survfit\n50\n\\(4.996 \\times 10^{-16}\\)\n\n\n\nThe small Cox-prediction difference reflects numerical details in the two Cox implementations and is less than seven ten-thousandths in absolute risk. The local Kaplan–Meier calibration estimates agree to floating-point precision. This second comparison directly validates the censoring correction plotted above—not merely the whole-cohort Kaplan–Meier estimate."
+  },
+  {
     "objectID": "posts/calibration_with_censored_observations/index.html#what-adjusted-assumes",
     "href": "posts/calibration_with_censored_observations/index.html#what-adjusted-assumes",
     "title": "Calibration Curves with Censored Observations",
