@@ -2,14 +2,14 @@
 title: "Calibration Curves with Censored Observations"
 author: "Uriah Finkel"
 date: "2026-08-12"
-description: "Estimate calibration from one through five years under independent right censoring with rtichoke, using the Rotterdam and GBSG survival example."
+description: "Explore calibration of fixed five-year predictions across administrative censoring horizons under independent right censoring."
 categories: [calibration, survival-analysis, censoring]
 draft: false
 ---
 
 Binary calibration has a simple outcome: by the prediction horizon, an event either happened or it did not. A censored survival outcome is different. If follow-up ends before the horizon, the patient's status at that horizon is unknown—not negative.
 
-This post reproduces the ordinary time-to-event example from McLernon and colleagues' [practical guidance for Cox models](https://doi.org/10.7326/M22-0844), using the authors' exact [Rotterdam and GBSG data and model recipe](https://github.com/danielegiardiello/Prediction_performance_survival). The published analysis emphasizes five-year recurrence or death. Here we additionally inspect years one through four, using a prediction calculated specifically for every horizon. It is a composite endpoint with ordinary right censoring; there are no competing-event codes in this analysis.
+This post reproduces the ordinary time-to-event example from McLernon and colleagues' [practical guidance for Cox models](https://doi.org/10.7326/M22-0844), using the authors' exact [Rotterdam and GBSG data and model recipe](https://github.com/danielegiardiello/Prediction_performance_survival). The model produces one vector of predicted five-year recurrence-or-death risks. We then use `rtichoke`'s horizon slider to examine how its calibration curve changes when observed follow-up is administratively censored at years one through five. It is a composite endpoint with ordinary right censoring; there are no competing-event codes in this analysis.
 
 ## Reproduce the published example
 
@@ -79,17 +79,17 @@ development = rotterdam[["time", "event", *features]]
 validation = gbsg[["time", "event", *features]]
 
 cox = CoxPHFitter().fit(development, duration_col="time", event_col="event")
-prediction_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
-predicted_survival = cox.predict_survival_function(
-    validation, times=prediction_horizons
-)
-predicted_risk = {
-    horizon: (1 - predicted_survival.loc[horizon]).to_numpy()
-    for horizon in prediction_horizons
-}
+prediction_horizon = 5.0
+administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
+predicted_risk_5y = (
+    1
+    - cox.predict_survival_function(
+        validation, times=[prediction_horizon]
+    ).iloc[0]
+).to_numpy()
 ```
 
-The validation set contains patients whose follow-up ended before each prediction horizon. Treating them as event-free would make the observed risks too low. Notice that the expected risk also changes with the horizon; we do not reuse five-year predictions at earlier times.
+The validation set contains patients whose follow-up ended before each administrative horizon. Treating them as event-free would make the observed risks too low. The prediction vector stays fixed: it always contains the model's five-year risks. The slider changes the observed-data horizon, not the model prediction.
 
 ```{python}
 horizon_summary = pd.DataFrame(
@@ -102,9 +102,9 @@ horizon_summary = pd.DataFrame(
             "censored before horizon": int(
                 ((validation["event"] == 0) & (validation["time"] < horizon)).sum()
             ),
-            "mean predicted risk": predicted_risk[horizon].mean(),
+            "mean predicted 5-year risk": predicted_risk_5y.mean(),
         }
-        for horizon in prediction_horizons
+        for horizon in administrative_horizons
     ]
 )
 horizon_summary
@@ -131,20 +131,20 @@ heuristics = [
     }
 ]
 
-for horizon in prediction_horizons:
-    fig = create_calibration_curve_times(
-        probs={"Rotterdam Cox model": predicted_risk[horizon]},
-        reals=validation["event"].to_numpy(),
-        times=validation["time"].to_numpy(),
-        fixed_time_horizons=[horizon],
-        heuristics_sets=heuristics,
-        calibration_type="discrete",
-    )
-    fig.update_layout(title=f"Calibration at {horizon:g} year{'s' if horizon > 1 else ''}")
-    fig.show(config={"displayModeBar": False, "displaylogo": False})
+fig = create_calibration_curve_times(
+    probs={"Rotterdam Cox model": predicted_risk_5y},
+    reals=validation["event"].to_numpy(),
+    times=validation["time"].to_numpy(),
+    fixed_time_horizons=administrative_horizons,
+    heuristics_sets=heuristics,
+    calibration_type="discrete",
+)
+fig.show(config={"displayModeBar": False, "displaylogo": False})
 ```
 
-Each point compares the mean predicted risk in a tenth of the validation sample with its censoring-adjusted observed risk. Every panel answers its own fixed-horizon question and uses its own Cox prediction, $1-\widehat S(t\mid X)$. We use one `rtichoke` call per horizon because the current API accepts one prediction vector and would otherwise reuse that vector at every value in `fixed_time_horizons`.
+Each point compares the mean predicted five-year risk in a tenth of the validation sample with the censoring-adjusted observed risk at the slider's current administrative horizon. `rtichoke` uses the same prediction vector throughout and recalculates the outcome status, local Kaplan–Meier estimate, and histogram for each horizon.
+
+The five-year slider position is the conventional calibration curve because its prediction and observation horizons coincide. Years one through four are sensitivity views of those same five-year predictions under earlier administrative censoring; they are not claims that the vector contains one- through four-year predicted risks.
 
 ## A direct check against Kaplan–Meier
 
@@ -157,12 +157,12 @@ overall_calibration = pd.DataFrame(
         {
             "horizon (years)": horizon,
             "observed risk (1 - KM)": 1 - float(km.predict(horizon)),
-            "mean predicted risk": predicted_risk[horizon].mean(),
+            "mean predicted 5-year risk": predicted_risk_5y.mean(),
             "observed / expected": (
-                (1 - float(km.predict(horizon))) / predicted_risk[horizon].mean()
+                (1 - float(km.predict(horizon))) / predicted_risk_5y.mean()
             ),
         }
-        for horizon in prediction_horizons
+        for horizon in administrative_horizons
     ]
 )
 overall_calibration
@@ -170,11 +170,11 @@ overall_calibration
 
 ## Validation against R
 
-The pull-request workflow independently reproduces the analysis with R's `survival` package. It fits the same Cox model with `survival::coxph()`, predicts risk at years one through five with `survival::survfit()`, and calculates every within-decile observed risk with a separate `survival::survfit()` call.
+The pull-request workflow independently reproduces the analysis with R's `survival` package. It fits the same Cox model with `survival::coxph()`, predicts the five-year risk vector with `survival::survfit()`, and calculates every within-decile observed risk at years one through five with a separate `survival::survfit()` call.
 
 | Comparison | Values checked | Maximum absolute difference |
 |---|---:|---:|
-| Individual Cox risks: Python `lifelines` versus R `survival` | 3,430 | 0.0006341 |
+| Individual five-year Cox risks: Python `lifelines` versus R `survival` | 686 | 0.0006341 |
 | Local observed risks: `rtichoke` versus R `1 - survfit` | 50 | $4.996 \times 10^{-16}$ |
 
 The small Cox-prediction difference reflects numerical details in the two Cox implementations and is less than seven ten-thousandths in absolute risk. The local Kaplan–Meier calibration estimates agree to floating-point precision. This second comparison directly validates the censoring correction plotted above—not merely the whole-cohort Kaplan–Meier estimate.
@@ -195,7 +195,7 @@ and smooths those pseudo-outcomes against predicted risk. The discrete curve abo
 
 ## Takeaway
 
-At a fixed horizon, censored-before-horizon is an unknown outcome—not a third clinical event and not a negative outcome. Pass the original event indicator, observed follow-up time, and a prediction calculated for that same horizon to `create_calibration_curve_times()`. Use `censoring_heuristic="adjusted"` when independent censoring is a defensible assumption.
+At a fixed horizon, censored-before-horizon is an unknown outcome—not a third clinical event and not a negative outcome. Pass one prediction vector, the original event indicator, observed follow-up time, and the administrative horizons to `create_calibration_curve_times()`. `rtichoke` applies the horizon-specific censoring rules and exposes the results through one slider. Use `censoring_heuristic="adjusted"` when independent censoring is a defensible assumption.
 
 ## References
 
