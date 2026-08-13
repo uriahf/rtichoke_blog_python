@@ -2,28 +2,28 @@
 title: "Calibration Curves with Censored Observations"
 author: "Uriah Finkel"
 date: "2026-08-12"
-description: "Explore calibration of fixed five-year predictions across administrative censoring horizons under independent right censoring."
+description: "Use rtichoke to inspect a fixed five-year risk model under independent right censoring."
 categories: [calibration, time-to-event, censoring]
 draft: false
 ---
 
-A patient is **censored** when follow-up ends before their event is observed. Their later outcome is unknown—not negative.
+A patient is **right-censored** when follow-up ends before their event is observed. We know they were event-free up to that point. What happened later is unknown—not negative.
 
-This example uses the Rotterdam and GBSG data from McLernon and colleagues' [guidance on evaluating prediction-model performance metrics for time-to-event outcomes](https://doi.org/10.7326/M22-0844) and [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death.
+I follow McLernon and colleagues' [guidance on evaluating prediction-model performance for time-to-event outcomes](https://doi.org/10.7326/M22-0844), using the Rotterdam development cohort and GBSG validation cohort from their [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death.
 
 ## Underlying assumption
 
-Let $T$ be event time and $C$ censoring time. Kaplan–Meier calibration assumes independent censoring:
+Let $T$ be event time and $C$ censoring time. The Kaplan–Meier estimate used here assumes independent censoring:
 
 $$
 T \perp C
 $$
 
-People censored at a given time should have the same subsequent event prospects as those still followed. If this is implausible, a conditional censoring model is needed.
+For the discrete curve, this should hold within groups of similar predictions. If censoring still depends on prognosis within those groups, a conditional censoring model is needed.
 
 ## Fit the published model
 
-The model produces one vector of predicted five-year risks.
+As in the article, the model produces one vector of predicted five-year risks.
 
 ```{python}
 #| code-fold: true
@@ -84,18 +84,25 @@ cox = CoxPHFitter().fit(development, duration_col="time", event_col="event")
 predicted_risk_5y = (
     1 - cox.predict_survival_function(validation, times=[5.0]).iloc[0]
 ).to_numpy()
-administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
 ```
 
 ## Censoring-adjusted calibration
 
-At each slider horizon $t$, `rtichoke` evaluates follow-up only through $t$: events after $t$ have not yet occurred, while patients lost before $t$ remain censored. Within each prediction group it estimates
+The article assesses calibration at five years. I keep its five-year prediction vector, but also inspect shorter follow-up horizons as a sensitivity check for time handling and possible target leakage:
+
+```{python}
+administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
+```
+
+Years one through four are not calibration assessments at those horizons: the predictions are still five-year risks. They are a diagnostic. In the discrete tab, each observed-risk point should stay level or rise as the slider moves forward because events accumulate. The smoothed lines may cross locally. A clearly implausible pattern is a reason to check the pipeline, but it is not proof of leakage.
+
+For each horizon $t$, `rtichoke` administratively censors follow-up at $t$. An event after $t$ is not counted yet; someone lost before $t$ remains censored at their actual follow-up time. Within each prediction group, `rtichoke` estimates
 
 $$
 \widehat{F}(t)=1-\widehat{S}_{KM}(t)
 $$
 
-The five-year prediction vector stays fixed; only the administrative horizon changes.
+The prediction vector never changes.
 
 ```{python}
 from rtichoke import create_calibration_curve_times
@@ -105,7 +112,7 @@ from rtichoke import create_calibration_curve_times
 
 ### Discrete
 
-Each point is the mean predicted risk and local Kaplan–Meier risk within a tenth of the sample.
+Each point compares the mean five-year prediction with the Kaplan–Meier risk at the selected follow-up horizon within a tenth of the sample.
 
 ```{python}
 create_calibration_curve_times(
@@ -119,7 +126,7 @@ create_calibration_curve_times(
 
 ### Smoothed
 
-The smooth curve regresses leave-one-out Kaplan–Meier pseudo-observations on predicted risk.
+This curve smooths leave-one-out Kaplan–Meier pseudo-observations against predicted risk.
 
 ```{python}
 create_calibration_curve_times(
