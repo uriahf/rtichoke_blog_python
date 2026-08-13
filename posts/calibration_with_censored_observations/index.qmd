@@ -98,9 +98,9 @@ Move the fixed time horizon to see how the same follow-up records are classified
 
 {{< horizon-explorer competing-as-censored="true" horizon="3" min="1" max="5" step="1" accent-color="#ce3d15" title="Move the fixed time horizon" >}}
 
-At years one through four, the curve is not expected to follow the diagonal: the predictions are still five-year risks. Only the five-year curve is a calibration check. In the discrete tab, each observed-risk point should stay level or rise as the slider moves forward because events accumulate. If a point falls, check the event times, event indicators, and censoring logic. The smoothed lines may cross locally. Unexpectedly close agreement with the diagonal at an early horizon is also a reason to check that no post-baseline information entered the predictions, although it does not establish leakage.
+Only the five-year curve assesses calibration because the predictions remain five-year risks. Years one through four are diagnostic. Discrete observed risks should not fall as the horizon advances. If they do, check the event times, indicators, and censoring logic. Unexpectedly early agreement with the diagonal warrants checking for target leakage. Smoothed curves may cross locally.
 
-For each horizon $t$, `rtichoke` administratively censors follow-up at $t$. An event after $t$ is not counted yet; someone lost before $t$ remains censored at their actual follow-up time. Within each prediction group, `rtichoke` estimates
+At each horizon $t$, `rtichoke` counts events observed by $t$ and retains earlier censoring times. Within each prediction group, it estimates
 
 $$
 \widehat{F}(t)=1-\widehat{S}_{KM}(t)
