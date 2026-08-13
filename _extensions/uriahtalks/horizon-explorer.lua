@@ -213,8 +213,8 @@ local function horizon_explorer(args, kwargs)
 @media (max-width: 650px) { #%s .uriah-horizon-svg { width: 720px; } }
 </style>
 ]], id, mode, title, initial_horizon, minimum_horizon, maximum_horizon, step,
-    initial_horizon, id, id, id, accent_color, id, id, id, id, id, id, id, id,
-    id, id, id, id, id, accent_color, id, id, id)
+    initial_horizon, id, id, id, id, accent_color, id, id, id, id, id, id, id,
+    id, id, id, id, id, id, accent_color, id, id, id)
 
   return pandoc.RawBlock("html", html)
 end
