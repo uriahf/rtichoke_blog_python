@@ -2169,7 +2169,7 @@ wheels = [
 [[package]]
 name = "rtichoke"
 version = "0.1.31"
-source = { git = "https://github.com/uriahf/rtichoke_python.git?rev=ddf2494#ddf2494589c68267b30f9db6189a292e245f86eb" }
+source = { git = "https://github.com/uriahf/rtichoke_python.git?rev=1e9e1cf#1e9e1cf428aee6b27b1309d9d1b089d7510072d5" }
 dependencies = [
     { name = "great-tables" },
     { name = "marimo" },
@@ -2205,7 +2205,7 @@ dev = [
 requires-dist = [
     { name = "lifelines", specifier = ">=0.30.0" },
     { name = "matplotlib", specifier = ">=3.10.7" },
-    { name = "rtichoke", git = "https://github.com/uriahf/rtichoke_python.git?rev=ddf2494" },
+    { name = "rtichoke", git = "https://github.com/uriahf/rtichoke_python.git?rev=1e9e1cf" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
 ]
 
