@@ -1,0 +1,157 @@
+---
+title: "Calibration Curves with Censored Observations"
+author: "Uriah Finkel"
+date: "2026-08-12"
+description: "Use rtichoke to inspect a fixed five-year risk model under independent right censoring."
+categories: [calibration, time-to-event, censoring]
+draft: false
+image: "image.png"
+---
+
+A patient is **right-censored** when follow-up ends before their event is observed. We know they were event-free up to that point.
+
+I follow McLernon and colleagues' [guidance on evaluating prediction-model performance for time-to-event outcomes](https://doi.org/10.7326/M22-0844), using the Rotterdam development cohort and GBSG validation cohort from their [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death.
+
+## Underlying assumption
+
+Let $T$ be event time and $C$ censoring time. The Kaplan–Meier estimate used here assumes independent censoring:
+
+$$
+T \perp C
+$$
+
+For the discrete curve, this should hold within groups of similar predictions. If censoring still depends on prognosis within those groups, a conditional censoring model is needed.
+
+## Fit the published model
+
+As in the article, the model produces one vector of predicted five-year risks.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show data preparation and model code"
+import numpy as np
+import pandas as pd
+from lifelines import CoxPHFitter
+
+rotterdam = pd.read_csv(
+    "https://raw.githubusercontent.com/danielegiardiello/Prediction_performance_survival/main/Data/rotterdam.csv"
+)
+gbsg = pd.read_csv(
+    "https://raw.githubusercontent.com/danielegiardiello/Prediction_performance_survival/main/Data/gbsg.csv"
+)
+
+
+def rcs_3_eval(x, knots):
+    k0, k1, k2 = knots
+    return (
+        np.maximum(x - k0, 0) ** 3
+        - np.maximum(x - k1, 0) ** 3 * (k2 - k0) / (k2 - k1)
+        + np.maximum(x - k2, 0) ** 3 * (k1 - k0) / (k2 - k1)
+    ) / (k2 - k0) ** 2
+
+
+rotterdam["time"] = rotterdam["rtime"] / 365.25
+rotterdam["event"] = np.maximum(rotterdam["recur"], rotterdam["death"])
+death_only = (
+    (rotterdam["event"] == 1)
+    & (rotterdam["recur"] == 0)
+    & (rotterdam["death"] == 1)
+    & (rotterdam["rtime"] < rotterdam["dtime"])
+)
+rotterdam.loc[death_only, "time"] = rotterdam.loc[death_only, "dtime"] / 365.25
+
+gbsg["time"] = gbsg["rfstime"] / 365.25
+gbsg["event"] = gbsg["status"]
+
+rotterdam["size_20_50"] = (rotterdam["size"] == "20-50").astype(int)
+rotterdam["size_gt_50"] = (rotterdam["size"] == ">50").astype(int)
+gbsg["size_20_50"] = ((gbsg["size"] > 20) & (gbsg["size"] <= 50)).astype(int)
+gbsg["size_gt_50"] = (gbsg["size"] > 50).astype(int)
+
+for data in (rotterdam, gbsg):
+    data["grade_3"] = (data["grade"] == 3).astype(int)
+    data["nodes2"] = np.minimum(data["nodes"], 19)
+    data["nodes3"] = rcs_3_eval(data["nodes2"], [0, 1, 9])
+    data["event"] = np.where(
+        (data["event"] == 1) & (data["time"] > 5), 0, data["event"]
+    )
+    data["time"] = np.minimum(data["time"], 5)
+
+features = ["size_20_50", "size_gt_50", "grade_3", "nodes2", "nodes3"]
+development = rotterdam[["time", "event", *features]]
+validation = gbsg[["time", "event", *features]]
+
+cox = CoxPHFitter().fit(development, duration_col="time", event_col="event")
+predicted_risk_5y = (
+    1 - cox.predict_survival_function(validation, times=[5.0]).iloc[0]
+).to_numpy()
+```
+
+## Censoring-adjusted calibration
+
+The original article evaluates calibration at five years. I keep its five-year prediction vector and add shorter follow-up horizons as a check on time handling and possible target leakage:
+
+```{python}
+administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
+```
+
+Move the fixed time horizon to see how the same follow-up records are classified at different times.
+
+{{< horizon-explorer competing-as-censored="true" horizon="3" min="1" max="5" step="1" accent-color="#ce3d15" title="Move the fixed time horizon" >}}
+
+Only the five-year curve assesses calibration because the predictions remain five-year risks. The earlier horizons simply show how observed risk develops during follow-up.
+
+At each horizon $t$, `rtichoke` truncates follow-up at $t$. Events before $t$ remain events, follow-up beyond $t$ is censored at $t$, and earlier censoring times remain unchanged. The prediction vector never changes.
+
+```{python}
+from rtichoke import create_calibration_curve_times
+```
+
+::: {.panel-tabset}
+
+### Discrete
+
+Patients are ordered by predicted risk and divided into ten similarly sized groups. Within each group, `rtichoke` estimates
+
+$$
+\widehat{F}(t)=1-\widehat{S}_{KM}(t)
+$$
+
+Each point compares this estimate with the group's mean five-year prediction.
+
+```{python}
+create_calibration_curve_times(
+    probs={"Rotterdam Cox model": predicted_risk_5y},
+    reals=validation["event"].to_numpy(),
+    times=validation["time"].to_numpy(),
+    fixed_time_horizons=administrative_horizons,
+    calibration_type="discrete",
+).show(config={"displayModeBar": False, "displaylogo": False})
+```
+
+### Smoothed
+
+For each patient, `rtichoke` calculates a leave-one-out Kaplan–Meier pseudo-observation:
+
+$$
+PO_i(t)=n\widehat{F}(t)-(n-1)\widehat{F}_{-i}(t)
+$$
+
+It then smooths these values against predicted risk.
+
+```{python}
+create_calibration_curve_times(
+    probs={"Rotterdam Cox model": predicted_risk_5y},
+    reals=validation["event"].to_numpy(),
+    times=validation["time"].to_numpy(),
+    fixed_time_horizons=administrative_horizons,
+    calibration_type="smooth",
+).show(config={"displayModeBar": False, "displaylogo": False})
+```
+
+:::
+
+## References
+
+- McLernon DJ, et al. [Assessing Performance and Clinical Usefulness in Prediction Models With Survival Outcomes](https://doi.org/10.7326/M22-0844). *Annals of Internal Medicine*. 2023.
+- Giardiello D, et al. [Companion code and data](https://github.com/danielegiardiello/Prediction_performance_survival).

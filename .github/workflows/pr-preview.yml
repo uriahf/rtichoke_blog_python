@@ -28,8 +28,18 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "release"
+
       - name: Install Python dependencies
         run: uv sync --frozen
+
+      - name: Validate censored calibration against R
+        run: |
+          uv run python validation/export_censored_calibration.py
+          Rscript validation/validate_censored_calibration.R
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2

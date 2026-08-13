@@ -1,0 +1,9 @@
+title: Uriah Talks
+author: Uriah Finkel
+version: 0.0.1
+contributes:
+  formats:
+    revealjs:
+      theme: [default, uriahtalks.scss]
+  shortcodes:
+    - horizon-explorer.lua
