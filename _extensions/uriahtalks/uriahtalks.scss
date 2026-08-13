@@ -1,0 +1,67 @@
+/*-- scss:defaults --*/
+@font-face {
+  font-family: "CommissionerLocal";
+  src: url("../../../../../fonts/commissioner-v13-latin-regular.woff2") format("woff2"),
+       url("../../../../../fonts/commissioner-v13-latin-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FrauncesLocal";
+  src: url("../../../../../fonts/Fraunces9pt-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+$body-bg: #F7F2E8;
+$body-color: #252525;
+$link-color: #355C7D;
+$presentation-heading-color: #252525;
+$presentation-font-size-root: 34px;
+$font-family-sans-serif: "CommissionerLocal", system-ui, sans-serif;
+$presentation-heading-font: "FrauncesLocal", "CommissionerLocal", system-ui, sans-serif;
+
+/*-- scss:rules --*/
+.reveal .slides {
+  text-align: left;
+}
+
+.reveal,
+.reveal .slides,
+.reveal section,
+.Reactable {
+  font-family: "CommissionerLocal", system-ui, sans-serif;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+  font-family: "FrauncesLocal", "CommissionerLocal", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.Reactable,
+.Reactable .rt-table,
+.Reactable .rt-thead,
+.Reactable .rt-tbody,
+.Reactable .rt-tfoot {
+  background-color: transparent !important;
+}
+
+.reveal .slide-number {
+  font-size: 0.45em;
+  opacity: 0.55;
+}
+
+.reveal table {
+  width: 100%;
+}
+
+.reveal code {
+  border-radius: 0.2rem;
+}
