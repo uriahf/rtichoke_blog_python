@@ -7,7 +7,7 @@ categories: [calibration, time-to-event, censoring]
 draft: false
 ---
 
-A patient is **right-censored** when follow-up ends before their event is observed. We know they were event-free up to that point. What happened later is unknown, not negative.
+A patient is **right-censored** when follow-up ends before their event is observed. We know they were event-free up to that point.
 
 I follow McLernon and colleagues' [guidance on evaluating prediction-model performance for time-to-event outcomes](https://doi.org/10.7326/M22-0844), using the Rotterdam development cohort and GBSG validation cohort from their [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death.
 
