@@ -100,13 +100,7 @@ Move the fixed time horizon to see how the same follow-up records are classified
 
 Only the five-year curve assesses calibration because the predictions remain five-year risks. The earlier horizons simply show how observed risk develops during follow-up.
 
-At each horizon $t$, `rtichoke` truncates follow-up at $t$. Events before $t$ remain events, follow-up beyond $t$ is censored at $t$, and earlier censoring times remain unchanged. For discrete calibration, patients are ordered by predicted risk and divided into ten similarly sized groups. In each group, `rtichoke` estimates
-
-$$
-\widehat{F}(t)=1-\widehat{S}_{KM}(t)
-$$
-
-The prediction vector never changes.
+At each horizon $t$, `rtichoke` truncates follow-up at $t$. Events before $t$ remain events, follow-up beyond $t$ is censored at $t$, and earlier censoring times remain unchanged. The prediction vector never changes.
 
 ```{python}
 from rtichoke import create_calibration_curve_times
@@ -116,7 +110,13 @@ from rtichoke import create_calibration_curve_times
 
 ### Discrete
 
-Each point compares the mean five-year prediction with the Kaplan–Meier risk at the selected follow-up horizon within a tenth of the sample.
+Patients are ordered by predicted risk and divided into ten similarly sized groups. Within each group, `rtichoke` estimates
+
+$$
+\widehat{F}(t)=1-\widehat{S}_{KM}(t)
+$$
+
+Each point compares this estimate with the group's mean five-year prediction.
 
 ```{python}
 create_calibration_curve_times(
