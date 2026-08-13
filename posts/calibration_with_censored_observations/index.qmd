@@ -130,7 +130,13 @@ create_calibration_curve_times(
 
 ### Smoothed
 
-This curve smooths leave-one-out Kaplan–Meier pseudo-observations against predicted risk.
+For each patient, `rtichoke` calculates a leave-one-out Kaplan–Meier pseudo-observation:
+
+$$
+PO_i(t)=n\widehat{F}(t)-(n-1)\widehat{F}_{-i}(t)
+$$
+
+It then smooths these values against predicted risk.
 
 ```{python}
 create_calibration_curve_times(
