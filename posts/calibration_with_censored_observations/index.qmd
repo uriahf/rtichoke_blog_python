@@ -88,13 +88,13 @@ predicted_risk_5y = (
 
 ## Censoring-adjusted calibration
 
-The article assesses calibration at five years. I keep its five-year prediction vector, but also inspect shorter follow-up horizons as a sensitivity check for time handling and possible target leakage:
+The article's fixed-horizon calibration analysis is at five years. I keep its five-year prediction vector and add earlier cutoffs as a check on time handling and possible target leakage:
 
 ```{python}
 administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
 ```
 
-Years one through four are not calibration assessments at those horizons: the predictions are still five-year risks. They are a diagnostic. In the discrete tab, each observed-risk point should stay level or rise as the slider moves forward because events accumulate. The smoothed lines may cross locally. A clearly implausible pattern is a reason to check the pipeline, but it is not proof of leakage.
+At years one through four, the curve is not expected to follow the diagonal: the predictions are still five-year risks. Only the five-year curve is a calibration check. In the discrete tab, each observed-risk point should stay level or rise as the slider moves forward because events accumulate. The smoothed lines may cross locally. A clearly implausible pattern is a reason to inspect the pipeline, but it is not proof of leakage.
 
 For each horizon $t$, `rtichoke` administratively censors follow-up at $t$. An event after $t$ is not counted yet; someone lost before $t$ remains censored at their actual follow-up time. Within each prediction group, `rtichoke` estimates
 
@@ -144,3 +144,4 @@ create_calibration_curve_times(
 
 - McLernon DJ, et al. [Assessing Performance and Clinical Usefulness in Prediction Models With Survival Outcomes](https://doi.org/10.7326/M22-0844). *Annals of Internal Medicine*. 2023.
 - Giardiello D, et al. [Companion code and data](https://github.com/danielegiardiello/Prediction_performance_survival).
+
