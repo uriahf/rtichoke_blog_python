@@ -7,13 +7,23 @@ categories: [calibration, time-to-event, censoring]
 draft: false
 ---
 
-If follow-up ends before the evaluation horizon, the outcome at that horizon is unknown—not negative.
+A patient is **censored** when follow-up ends before their event is observed. Their later outcome is unknown—not negative.
 
-This example uses the Rotterdam development cohort and GBSG validation cohort from McLernon and colleagues' [guidance for Cox models](https://doi.org/10.7326/M22-0844) and its [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death, with ordinary right censoring and no competing-event codes.
+This example uses the Rotterdam and GBSG data from McLernon and colleagues' [Cox-model guidance](https://doi.org/10.7326/M22-0844) and [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death.
+
+## Underlying assumption
+
+Let $T$ be event time and $C$ censoring time. Kaplan–Meier calibration assumes independent censoring:
+
+$
+T \perp C.
+$
+
+People censored at a given time should have the same subsequent event prospects as those still followed. If this is implausible, a conditional censoring model is needed.
 
 ## Fit the published model
 
-The Cox model produces one vector of predicted five-year risks. The code below follows the companion analysis, including five-year administrative censoring, winsorization, and the restricted cubic spline for positive nodes.
+The model produces one vector of predicted five-year risks.
 
 ```{python}
 #| code-fold: true
@@ -79,24 +89,16 @@ administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
 
 ## Censoring-adjusted calibration
 
-Within each prediction group, `rtichoke` estimates observed risk at horizon $t$ as
+At each slider horizon $t$, `rtichoke` evaluates follow-up only through $t$: events after $t$ have not yet occurred, while patients lost before $t$ remain censored. Within each prediction group it estimates
 
-$$
+$
 \widehat F(t)=1-\widehat S_{KM}(t).
-$$
+$
 
-The same five-year prediction vector is used throughout. The slider changes the administrative censoring horizon and recalculates the observed outcomes. The five-year position is the conventional calibration comparison; earlier positions are sensitivity views of the fixed five-year predictions.
+The five-year prediction vector stays fixed; only the administrative horizon changes.
 
 ```{python}
 from rtichoke import create_calibration_curve_times
-
-heuristics = [
-    {
-        "censoring_heuristic": "adjusted",
-        # Inert here because event contains only 0 and 1.
-        "competing_heuristic": "adjusted_as_negative",
-    }
-]
 ```
 
 ::: {.panel-tabset}
@@ -111,7 +113,6 @@ create_calibration_curve_times(
     reals=validation["event"].to_numpy(),
     times=validation["time"].to_numpy(),
     fixed_time_horizons=administrative_horizons,
-    heuristics_sets=heuristics,
     calibration_type="discrete",
 ).show(config={"displayModeBar": False, "displaylogo": False})
 ```
@@ -126,16 +127,11 @@ create_calibration_curve_times(
     reals=validation["event"].to_numpy(),
     times=validation["time"].to_numpy(),
     fixed_time_horizons=administrative_horizons,
-    heuristics_sets=heuristics,
     calibration_type="smooth",
 ).show(config={"displayModeBar": False, "displaylogo": False})
 ```
 
 :::
-
-## Assumption
-
-The adjustment assumes independent right censoring. If censoring depends on unaccounted prognosis, local Kaplan–Meier estimation is not sufficient; a conditional censoring model and sensitivity analysis are needed.
 
 ## References
 
