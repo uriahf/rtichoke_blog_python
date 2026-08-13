@@ -98,7 +98,7 @@ Move the fixed time horizon to see how the same follow-up records are classified
 
 {{< horizon-explorer competing-as-censored="true" horizon="3" min="1" max="5" step="1" accent-color="#ce3d15" title="Move the fixed time horizon" >}}
 
-Only the five-year curve assesses calibration because the predictions remain five-year risks. Years one through four are diagnostic. Discrete observed risks should not fall as the horizon advances. If they do, check the event times, indicators, and censoring logic. Unexpectedly early agreement with the diagonal warrants checking for target leakage. Smoothed curves may cross locally.
+Only the five-year curve assesses calibration because the predictions remain five-year risks. The earlier horizons simply show how observed risk develops during follow-up.
 
 At each horizon $t$, `rtichoke` counts events observed by $t$ and retains earlier censoring times. Within each prediction group, it estimates
 
