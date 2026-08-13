@@ -9,7 +9,7 @@ draft: false
 
 A patient is **censored** when follow-up ends before their event is observed. Their later outcome is unknown—not negative.
 
-This example uses the Rotterdam and GBSG data from McLernon and colleagues' [Cox-model guidance](https://doi.org/10.7326/M22-0844) and [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death.
+This example uses the Rotterdam and GBSG data from McLernon and colleagues' [guidance on evaluating prediction-model performance metrics for time-to-event outcomes](https://doi.org/10.7326/M22-0844) and [companion repository](https://github.com/danielegiardiello/Prediction_performance_survival). The endpoint is recurrence or death.
 
 ## Underlying assumption
 
