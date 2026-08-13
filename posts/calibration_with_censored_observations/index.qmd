@@ -16,7 +16,7 @@ This example uses the Rotterdam and GBSG data from McLernon and colleagues' [Cox
 Let $T$ be event time and $C$ censoring time. Kaplan–Meier calibration assumes independent censoring:
 
 $$
-T \\perp C
+T \perp C
 $$
 
 People censored at a given time should have the same subsequent event prospects as those still followed. If this is implausible, a conditional censoring model is needed.
@@ -92,7 +92,7 @@ administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
 At each slider horizon $t$, `rtichoke` evaluates follow-up only through $t$: events after $t$ have not yet occurred, while patients lost before $t$ remain censored. Within each prediction group it estimates
 
 $$
-\\widehat{F}(t)=1-\\widehat{S}_{KM}(t)
+\widehat{F}(t)=1-\widehat{S}_{KM}(t)
 $$
 
 The five-year prediction vector stays fixed; only the administrative horizon changes.
