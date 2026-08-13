@@ -27,7 +27,8 @@ local function horizon_explorer(args, kwargs)
   local mode = competing_as_censored and "competing-as-censored" or "observed"
 
   local html = string.format([[
-<div id="%s" class="uriah-horizon-explorer" data-mode="%s">
+<div id="%s" class="uriah-horizon-explorer" data-mode="%s"
+  style="--uriah-horizon-accent: %s">
   <div class="uriah-horizon-heading">%s</div>
   <label class="uriah-horizon-control">
     <span>Fixed time horizon: <output>%g</output></span>
@@ -194,7 +195,7 @@ local function horizon_explorer(args, kwargs)
   margin-bottom: .65rem;
 }
 #%s .uriah-horizon-control { display: grid; gap: .3rem; max-width: 34rem; }
-#%s input[type="range"] { width: 100%%; accent-color: %s; }
+#%s input[type="range"] { width: 100%%; accent-color: var(--uriah-horizon-accent); }
 #%s .uriah-horizon-chart { width: 100%%; overflow-x: auto; background: transparent; }
 #%s .uriah-horizon-svg { display: block; width: 100%%; min-width: 620px; background: transparent; }
 #%s .uriah-axis { stroke: currentColor; stroke-width: 1; }
@@ -204,7 +205,7 @@ local function horizon_explorer(args, kwargs)
 #%s .uriah-tick, #%s .uriah-axis-label { text-anchor: middle; }
 #%s .uriah-row-label { text-anchor: end; dominant-baseline: middle; }
 #%s .uriah-followup-line { stroke: color-mix(in srgb, currentColor 38%%, transparent); stroke-width: 2; }
-#%s .uriah-horizon-line { stroke: %s; stroke-width: 4; stroke-dasharray: 7 6; }
+#%s .uriah-horizon-line { stroke: var(--uriah-horizon-accent); stroke-width: 4; stroke-dasharray: 7 6; }
 #%s .uriah-emoji-marker {
   font: 30px "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
   text-anchor: middle; dominant-baseline: central; cursor: help;
@@ -212,9 +213,9 @@ local function horizon_explorer(args, kwargs)
 #%s .uriah-horizon-key { display: flex; flex-wrap: wrap; gap: .45rem 1.1rem; font-size: .9em; }
 @media (max-width: 650px) { #%s .uriah-horizon-svg { width: 720px; } }
 </style>
-]], id, mode, title, initial_horizon, minimum_horizon, maximum_horizon, step,
-    initial_horizon, id, id, id, id, accent_color, id, id, id, id, id, id, id,
-    id, id, id, id, id, id, accent_color, id, id, id)
+]], id, mode, accent_color, title, initial_horizon, minimum_horizon,
+    maximum_horizon, step, initial_horizon, id, id, id, id, id, id, id, id, id,
+    id, id, id, id, id, id, id, id, id, id)
 
   return pandoc.RawBlock("html", html)
 end
