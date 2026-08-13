@@ -94,6 +94,10 @@ The original article evaluates calibration at five years. I keep its five-year p
 administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
 ```
 
+Move the fixed time horizon to see how the same follow-up records are classified at different times.
+
+{{< horizon-explorer competing-as-censored="true" horizon="30" min="10" max="50" step="10" title="Move the fixed time horizon" >}}
+
 At years one through four, the curve is not expected to follow the diagonal: the predictions are still five-year risks. Only the five-year curve is a calibration check. In the discrete tab, each observed-risk point should stay level or rise as the slider moves forward because events accumulate. If a point falls, check the event times, event indicators, and censoring logic. The smoothed lines may cross locally. Unexpectedly close agreement with the diagonal at an early horizon is also a reason to check that no post-baseline information entered the predictions, although it does not establish leakage.
 
 For each horizon $t$, `rtichoke` administratively censors follow-up at $t$. An event after $t$ is not counted yet; someone lost before $t$ remains censored at their actual follow-up time. Within each prediction group, `rtichoke` estimates
