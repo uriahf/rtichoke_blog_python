@@ -20,7 +20,7 @@ The Cox model produces one vector of predicted five-year risks. The code below f
 #| code-summary: "Show data preparation and model code"
 import numpy as np
 import pandas as pd
-from lifelines import CoxPHFitter, KaplanMeierFitter
+from lifelines import CoxPHFitter
 
 rotterdam = pd.read_csv(
     "https://raw.githubusercontent.com/danielegiardiello/Prediction_performance_survival/main/Data/rotterdam.csv"
@@ -132,28 +132,6 @@ create_calibration_curve_times(
 ```
 
 :::
-
-## Validation against R
-
-The PR workflow independently reproduces the five-year predictions and every local estimate with R's `survival` package.
-
-| Comparison | Checked | Maximum absolute difference |
-|---|---:|---:|
-| Five-year Cox risks: `lifelines` vs. `survival` | 686 | 0.0006341 |
-| Local observed risks: `rtichoke` vs. `1 - survfit` | 50 | $4.996 \times 10^{-16}$ |
-
-```{python}
-#| code-fold: true
-#| code-summary: "Show whole-cohort Kaplan–Meier check"
-km = KaplanMeierFitter().fit(validation["time"], validation["event"])
-pd.DataFrame(
-    {
-        "horizon": administrative_horizons,
-        "observed risk": [1 - float(km.predict(t)) for t in administrative_horizons],
-        "mean predicted 5-year risk": predicted_risk_5y.mean(),
-    }
-)
-```
 
 ## Assumption
 
