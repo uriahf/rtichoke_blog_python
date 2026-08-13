@@ -11,7 +11,7 @@
     "href": "posts/calibration_with_censored_observations/index.html",
     "title": "Calibration Curves with Censored Observations",
     "section": "",
-    "text": "A patient is right-censored when follow-up ends before their event is observed. We know they were event-free up to that point. What happened later is unknown—not negative.\nI follow McLernon and colleagues’ guidance on evaluating prediction-model performance for time-to-event outcomes, using the Rotterdam development cohort and GBSG validation cohort from their companion repository. The endpoint is recurrence or death."
+    "text": "A patient is right-censored when follow-up ends before their event is observed. We know they were event-free up to that point. What happened later is unknown, not negative.\nI follow McLernon and colleagues’ guidance on evaluating prediction-model performance for time-to-event outcomes, using the Rotterdam development cohort and GBSG validation cohort from their companion repository. The endpoint is recurrence or death."
   },
   {
     "objectID": "posts/calibration_with_censored_observations/index.html#underlying-assumption",
