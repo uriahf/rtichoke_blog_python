@@ -11,7 +11,7 @@
     "href": "posts/calibration_with_censored_observations/index.html",
     "title": "Calibration Curves with Censored Observations",
     "section": "",
-    "text": "A patient is censored when follow-up ends before their event is observed. Their later outcome is unknown—not negative.\nThis example uses the Rotterdam and GBSG data from McLernon and colleagues’ Cox-model guidance and companion repository. The endpoint is recurrence or death."
+    "text": "A patient is censored when follow-up ends before their event is observed. Their later outcome is unknown—not negative.\nThis example uses the Rotterdam and GBSG data from McLernon and colleagues’ guidance on evaluating prediction-model performance metrics for time-to-event outcomes and companion repository. The endpoint is recurrence or death."
   },
   {
     "objectID": "posts/calibration_with_censored_observations/index.html#underlying-assumption",
