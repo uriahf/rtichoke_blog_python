@@ -5,6 +5,7 @@ date: "2026-08-12"
 description: "Use rtichoke to inspect a fixed five-year risk model under independent right censoring."
 categories: [calibration, time-to-event, censoring]
 draft: false
+image: "image.png"
 ---
 
 A patient is **right-censored** when follow-up ends before their event is observed. We know they were event-free up to that point.
