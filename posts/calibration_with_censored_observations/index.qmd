@@ -88,7 +88,7 @@ predicted_risk_5y = (
 
 ## Censoring-adjusted calibration
 
-The article's fixed-horizon calibration analysis is at five years. I keep its five-year prediction vector and add earlier cutoffs as a check on time handling and possible target leakage:
+The original article evaluates calibration at five years. I keep its five-year prediction vector and add shorter follow-up horizons as a check on time handling and possible target leakage:
 
 ```{python}
 administrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]
