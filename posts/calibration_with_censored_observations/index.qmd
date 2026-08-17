@@ -137,13 +137,13 @@ create_calibration_curve_times(
 
 ### Smoothed
 
-For smooth calibration, `rtichoke` transforms predicted risk as
+For smooth calibration, `rtichoke` fits a secondary Cox model with a **3-knot restricted cubic spline** of the cloglog-transformed prediction
 
 $$
-x_i = \log\{-\log(1-\hat p_i)\},
+x_i = \log\{-\log(1-\hat p_i)\}
 $$
 
-then fits a secondary Cox model with a **3-knot restricted cubic spline of $x_i$** as its sole predictor. Predictions at horizon $t$ form the smooth calibration curve.
+as its sole predictor. Predictions from this model at horizon $t$ form the smooth calibration curve.
 
 ```{python}
 create_calibration_curve_times(
