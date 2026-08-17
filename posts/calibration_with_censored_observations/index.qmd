@@ -137,7 +137,13 @@ create_calibration_curve_times(
 
 ### Smoothed
 
-To construct a smooth time-dependent calibration curve at prediction horizon $t$, `rtichoke` takes the complementary log-log transformation of the predicted risk, $\log[-\log(1-\hat{p})]$, and fits a secondary Cox model using a 3-knot restricted cubic spline of this transformed prediction as its sole predictor (Austin, Harrell & van Klaveren 2020; McLernon et al. 2023). The resulting predictions form the smooth calibration curve.
+For smooth calibration, `rtichoke` transforms predicted risk as
+
+$$
+x_i = \log\{-\log(1-\hat p_i)\},
+$$
+
+then fits a secondary Cox model with a **3-knot restricted cubic spline of $x_i$** as its sole predictor. Predictions at horizon $t$ form the smooth calibration curve.
 
 ```{python}
 create_calibration_curve_times(
