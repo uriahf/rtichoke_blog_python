@@ -2179,8 +2179,8 @@ wheels = [
 
 [[package]]
 name = "rtichoke"
-version = "0.1.32"
-source = { git = "https://github.com/uriahf/rtichoke_python.git?rev=main#b043e0c733e2bc4fdc53d8d8936e9fffe53471aa" }
+version = "0.1.33"
+source = { git = "https://github.com/uriahf/rtichoke_python.git?rev=main#055aa00fffbcc594496a4d043f460e09b63052ec" }
 dependencies = [
     { name = "great-tables" },
     { name = "marimo" },
