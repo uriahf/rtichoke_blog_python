@@ -28,13 +28,24 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Refresh lockfile
+        run: |
+          uv lock
+          if ! git diff --quiet -- uv.lock; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add uv.lock
+            git commit -m "Refresh rtichoke lockfile"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
+
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: "release"
 
       - name: Install Python dependencies
-        run: uv sync
+        run: uv sync --frozen
 
       - name: Validate censored calibration against R
         run: |
