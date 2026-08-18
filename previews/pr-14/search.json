@@ -1,0 +1,107 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Python Examples",
+    "section": "",
+    "text": "Calibration Curves with Censored Observations\n\n\n\ncalibration\n\ntime-to-event\n\ncensoring\n\n\n\nUse rtichoke to inspect a fixed five-year risk model under independent right censoring.\n\n\n\n\n\nAug 12, 2026\n\n\nUriah Finkel\n\n\n\n\n\n\n\n\n\n\n\n\nDecision Curves with Fixed Time Horizons\n\n\n\nDecision\n\nTime-Horizons\n\n\n\n\n\n\n\n\n\nDec 15, 2025\n\n\nUriah Finkel\n\n\n\n\n\n\n\n\n\n\n\n\nCalibration Curves for Multiple Models\n\n\n\ncalibration\n\nscikit-learn\n\n\n\nAn example of creating a calibration curve using rtichoke and scikit-learn.\n\n\n\n\n\nMay 15, 2024\n\n\nUriah Finkel\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "posts/calibration_with_censored_observations/index.html",
+    "href": "posts/calibration_with_censored_observations/index.html",
+    "title": "Calibration Curves with Censored Observations",
+    "section": "",
+    "text": "A patient is right-censored when follow-up ends before their event is observed. We know they were event-free up to that point.\nI follow McLernon and colleagues’ guidance on evaluating prediction-model performance for time-to-event outcomes, using the Rotterdam development cohort and GBSG validation cohort from their companion repository. The endpoint is recurrence or death."
+  },
+  {
+    "objectID": "posts/calibration_with_censored_observations/index.html#underlying-assumption",
+    "href": "posts/calibration_with_censored_observations/index.html#underlying-assumption",
+    "title": "Calibration Curves with Censored Observations",
+    "section": "Underlying assumption",
+    "text": "Underlying assumption\nLet \\(T\\) be event time and \\(C\\) censoring time. The Kaplan–Meier estimate used here assumes independent censoring:\n\\[\nT \\perp C\n\\]\nFor the discrete curve, this should hold within groups of similar predictions. If censoring still depends on prognosis within those groups, a conditional censoring model is needed."
+  },
+  {
+    "objectID": "posts/calibration_with_censored_observations/index.html#fit-the-published-model",
+    "href": "posts/calibration_with_censored_observations/index.html#fit-the-published-model",
+    "title": "Calibration Curves with Censored Observations",
+    "section": "Fit the published model",
+    "text": "Fit the published model\nAs in the article, the model produces one vector of predicted five-year risks.\n\n\nShow data preparation and model code\nimport numpy as np\nimport pandas as pd\nfrom lifelines import CoxPHFitter\n\nrotterdam = pd.read_csv(\n    \"https://raw.githubusercontent.com/danielegiardiello/Prediction_performance_survival/main/Data/rotterdam.csv\"\n)\ngbsg = pd.read_csv(\n    \"https://raw.githubusercontent.com/danielegiardiello/Prediction_performance_survival/main/Data/gbsg.csv\"\n)\n\n\ndef rcs_3_eval(x, knots):\n    k0, k1, k2 = knots\n    return (\n        np.maximum(x - k0, 0) ** 3\n        - np.maximum(x - k1, 0) ** 3 * (k2 - k0) / (k2 - k1)\n        + np.maximum(x - k2, 0) ** 3 * (k1 - k0) / (k2 - k1)\n    ) / (k2 - k0) ** 2\n\n\nrotterdam[\"time\"] = rotterdam[\"rtime\"] / 365.25\nrotterdam[\"event\"] = np.maximum(rotterdam[\"recur\"], rotterdam[\"death\"])\ndeath_only = (\n    (rotterdam[\"event\"] == 1)\n    & (rotterdam[\"recur\"] == 0)\n    & (rotterdam[\"death\"] == 1)\n    & (rotterdam[\"rtime\"] &lt; rotterdam[\"dtime\"])\n)\nrotterdam.loc[death_only, \"time\"] = rotterdam.loc[death_only, \"dtime\"] / 365.25\n\ngbsg[\"time\"] = gbsg[\"rfstime\"] / 365.25\ngbsg[\"event\"] = gbsg[\"status\"]\n\nrotterdam[\"size_20_50\"] = (rotterdam[\"size\"] == \"20-50\").astype(int)\nrotterdam[\"size_gt_50\"] = (rotterdam[\"size\"] == \"&gt;50\").astype(int)\ngbsg[\"size_20_50\"] = ((gbsg[\"size\"] &gt; 20) & (gbsg[\"size\"] &lt;= 50)).astype(int)\ngbsg[\"size_gt_50\"] = (gbsg[\"size\"] &gt; 50).astype(int)\n\nfor data in (rotterdam, gbsg):\n    data[\"grade_3\"] = (data[\"grade\"] == 3).astype(int)\n    data[\"nodes2\"] = np.minimum(data[\"nodes\"], 19)\n    data[\"nodes3\"] = rcs_3_eval(data[\"nodes2\"], [0, 1, 9])\n    data[\"event\"] = np.where(\n        (data[\"event\"] == 1) & (data[\"time\"] &gt; 5), 0, data[\"event\"]\n    )\n    data[\"time\"] = np.minimum(data[\"time\"], 5)\n\nfeatures = [\"size_20_50\", \"size_gt_50\", \"grade_3\", \"nodes2\", \"nodes3\"]\ndevelopment = rotterdam[[\"time\", \"event\", *features]]\nvalidation = gbsg[[\"time\", \"event\", *features]]\n\ncox = CoxPHFitter().fit(development, duration_col=\"time\", event_col=\"event\")\npredicted_risk_5y = (\n    1 - cox.predict_survival_function(validation, times=[5.0]).iloc[0]\n).to_numpy()"
+  },
+  {
+    "objectID": "posts/calibration_with_censored_observations/index.html#censoring-adjusted-calibration",
+    "href": "posts/calibration_with_censored_observations/index.html#censoring-adjusted-calibration",
+    "title": "Calibration Curves with Censored Observations",
+    "section": "Censoring-adjusted calibration",
+    "text": "Censoring-adjusted calibration\nThe original article evaluates calibration at five years. I keep its five-year prediction vector and add shorter follow-up horizons as a check on time handling and possible target leakage:\n\nadministrative_horizons = [1.0, 2.0, 3.0, 4.0, 5.0]\n\nMove the fixed time horizon to see how the same follow-up records are classified at different times.\n\n  Move the fixed time horizon\n  \n    Fixed time horizon: 3\n    \n  \n  \n  \n\n\n\n\nOnly the five-year curve assesses calibration because the predictions remain five-year risks. The earlier horizons simply show how observed risk develops during follow-up.\nAt each horizon \\(t\\), rtichoke truncates follow-up at \\(t\\). Events before \\(t\\) remain events, follow-up beyond \\(t\\) is censored at \\(t\\), and earlier censoring times remain unchanged. The prediction vector never changes.\n\nfrom rtichoke import create_calibration_curve_times\n\n\nDiscreteSmoothed\n\n\nPatients are ordered by predicted risk and divided into ten similarly sized groups. Within each group, rtichoke estimates\n\\[\n\\widehat{F}(t)=1-\\widehat{S}_{KM}(t)\n\\]\nEach point compares this estimate with the group’s mean five-year prediction.\n\ncreate_calibration_curve_times(\n    probs={\"Rotterdam Cox model\": predicted_risk_5y},\n    reals=validation[\"event\"].to_numpy(),\n    times=validation[\"time\"].to_numpy(),\n    fixed_time_horizons=administrative_horizons,\n    heuristics_sets=[\n        {\n            \"censoring_heuristic\": \"adjusted\",\n            \"competing_heuristic\": \"adjusted_as_negative\",\n        }\n    ],\n    calibration_type=\"discrete\",\n).show(config={\"displayModeBar\": False, \"displaylogo\": False})\n\n                                                \n\n\n\n\nFor smooth calibration, rtichoke fits a secondary Cox model with a 3-knot restricted cubic spline of the cloglog-transformed prediction\n\\[\nx_i = \\log\\{-\\log(1-\\hat p_i)\\}\n\\]\nas its sole predictor. Predictions from this model at horizon \\(t\\) form the smooth calibration curve.\n\ncreate_calibration_curve_times(\n    probs={\"Rotterdam Cox model\": predicted_risk_5y},\n    reals=validation[\"event\"].to_numpy(),\n    times=validation[\"time\"].to_numpy(),\n    fixed_time_horizons=administrative_horizons,\n    heuristics_sets=[\n        {\n            \"censoring_heuristic\": \"adjusted\",\n            \"competing_heuristic\": \"adjusted_as_negative\",\n        }\n    ],\n    calibration_type=\"smooth\",\n    smooth_method=\"secondary_cox\",\n).show(config={\"displayModeBar\": False, \"displaylogo\": False})"
+  },
+  {
+    "objectID": "posts/calibration_with_censored_observations/index.html#references",
+    "href": "posts/calibration_with_censored_observations/index.html#references",
+    "title": "Calibration Curves with Censored Observations",
+    "section": "References",
+    "text": "References\n\nMcLernon DJ, et al. Assessing Performance and Clinical Usefulness in Prediction Models With Survival Outcomes. Annals of Internal Medicine. 2023.\nGiardiello D, et al. Companion code and data."
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html",
+    "href": "posts/dca_with_fixed_time_horizons/index.html",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "",
+    "text": "rtichoke for Python introduces support for fixed time horizons, allowing flexible specification of the prediction horizon and automatically updating performance plots accordingly."
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#the-most-under-discussed-design-choice-in-prediction-models-the-time-horizon",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#the-most-under-discussed-design-choice-in-prediction-models-the-time-horizon",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "The most under-discussed design choice in prediction models: The Time Horizon",
+    "text": "The most under-discussed design choice in prediction models: The Time Horizon\nPrediction models require a well-defined fixed time horizon: The end of follow-up over which the outcome probability is defined. A probability of dying within 1 week, 1 year, or 100 years represents fundamentally different clinical questions and very different implied decision contexts.\nIt is therefore important to explore the sensitivity of model performance to the choice of time horizon: Shorter horizons typically yield fewer observed events, resulting in smaller gaps between the two baseline strategies “treat all” (Everyone is considered Predicted Positive) and “treat none” (everyone is considered Predicted Negative).\nIn contrast, longer horizons may introduce ambiguity through censoring (loss to follow-up) or competing events (events that preclude the primary outcome)."
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#pragmatic-approach-performance-sensitivity-analysis-with-rtichoke",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#pragmatic-approach-performance-sensitivity-analysis-with-rtichoke",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "Pragmatic approach: Performance Sensitivity Analysis with rtichoke",
+    "text": "Pragmatic approach: Performance Sensitivity Analysis with rtichoke\nYou do not need to develop a new or more complex model to overcome these problems, first you need to ensure if there’s a problem at all and for which time horizons:\nYou can reuse predictions trained for a specific horizon and evaluate their robustness across alternative fixed time horizons: This allows you to assess how performance changes as the effective follow-up window varies without retraining the model."
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#load-data-and-fit-a-cox-regression",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#load-data-and-fit-a-cox-regression",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "Load data and fit a Cox Regression",
+    "text": "Load data and fit a Cox Regression\n\nimport pandas as pd\nimport lifelines\n\ndf_time_to_cancer_dx = pd.read_csv(\n    \"https://raw.githubusercontent.com/ddsjoberg/dca-tutorial/main/data/df_time_to_cancer_dx.csv\"\n)\n\ncph = lifelines.CoxPHFitter()\ncph.fit(\n    df=df_time_to_cancer_dx,\n    duration_col=\"ttcancer\",\n    event_col=\"cancer\",\n    formula=\"age + famhistory + marker\",\n)\n\ncph_pred_vals = cph.predict_survival_function(\n    df_time_to_cancer_dx[[\"age\", \"famhistory\", \"marker\"]], times=[1.5]\n)\n\ndf_time_to_cancer_dx[\"pr_failure18\"] = [1 - val for val in cph_pred_vals.iloc[0, :]]"
+  },
+  {
+    "objectID": "posts/dca_with_fixed_time_horizons/index.html#decision-curve-with-multiple-fixed-time-horizons",
+    "href": "posts/dca_with_fixed_time_horizons/index.html#decision-curve-with-multiple-fixed-time-horizons",
+    "title": "Decision Curves with Fixed Time Horizons",
+    "section": "Decision Curve with Multiple Fixed Time Horizons",
+    "text": "Decision Curve with Multiple Fixed Time Horizons\nThe fixed_time_horizons argument allows you to explicitly define the set of follow-up horizons to evaluate.\n\nfrom rtichoke import create_decision_curve_times\n\ncreate_decision_curve_times(\n    probs={\"full\": df_time_to_cancer_dx[\"pr_failure18\"]},\n    reals=df_time_to_cancer_dx[\"cancer\"],\n    times=df_time_to_cancer_dx[\"ttcancer\"],\n    fixed_time_horizons=[0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]\n)"
+  },
+  {
+    "objectID": "posts/calibration_curve/index.html",
+    "href": "posts/calibration_curve/index.html",
+    "title": "Calibration Curves for Multiple Models",
+    "section": "",
+    "text": "The following example is inspired by the scikit-learn documentation displaying a calibration curve."
+  },
+  {
+    "objectID": "posts/calibration_curve/index.html#load-data-and-fit-models",
+    "href": "posts/calibration_curve/index.html#load-data-and-fit-models",
+    "title": "Calibration Curves for Multiple Models",
+    "section": "Load data and fit models",
+    "text": "Load data and fit models\n\nfrom sklearn.datasets import make_classification\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.naive_bayes import GaussianNB\nfrom sklearn.calibration import CalibratedClassifierCV\nimport numpy as np\nfrom sklearn.svm import LinearSVC\n\nX, y = make_classification(\n    n_samples=10_000, n_features=20, n_informative=2, n_redundant=10, random_state=42\n)\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.99, random_state=42\n)\n\nlr = LogisticRegression(C=1.0)\ngnb = GaussianNB()\ngnb_isotonic = CalibratedClassifierCV(gnb, cv=2, method=\"isotonic\")\ngnb_sigmoid = CalibratedClassifierCV(gnb, cv=2, method=\"sigmoid\")\n\nlr.fit(X_train, y_train)\ngnb.fit(X_train, y_train)\ngnb_isotonic.fit(X_train, y_train)\ngnb_sigmoid.fit(X_train, y_train)\n\ny_proba_lr = lr.predict_proba(X_test)[:, 1]\ny_proba_gnb = gnb.predict_proba(X_test)[:, 1]\ny_proba_gnb_isotonic = gnb_isotonic.predict_proba(X_test)[:, 1]\ny_proba_gnb_sigmoid = gnb_sigmoid.predict_proba(X_test)[:, 1]\n\nclass NaivelyCalibratedLinearSVC(LinearSVC):\n\n    def fit(self, X, y):\n        super().fit(X, y)\n        df = self.decision_function(X)\n        self.df_min_ = df.min()\n        self.df_max_ = df.max()\n\n    def predict_proba(self, X):\n        df = self.decision_function(X)\n        calibrated_df = (df - self.df_min_) / (self.df_max_ - self.df_min_)\n        proba_pos_class = np.clip(calibrated_df, 0, 1)\n        proba_neg_class = 1 - proba_pos_class\n        proba = np.c_[proba_neg_class, proba_pos_class]\n        return proba\n\nsvc = NaivelyCalibratedLinearSVC(max_iter=10_000)\nsvc_isotonic = CalibratedClassifierCV(svc, cv=2, method=\"isotonic\")\nsvc_sigmoid = CalibratedClassifierCV(svc, cv=2, method=\"sigmoid\")\n\nsvc.fit(X_train, y_train)\nsvc_isotonic.fit(X_train, y_train)\nsvc_sigmoid.fit(X_train, y_train)\n\ny_proba_svc = svc.predict_proba(X_test)[:, 1]\ny_proba_svc_isotonic = svc_isotonic.predict_proba(X_test)[:, 1]\ny_proba_svc_sigmoid = svc_sigmoid.predict_proba(X_test)[:, 1]"
+  },
+  {
+    "objectID": "posts/calibration_curve/index.html#gaussian-naive-bayes",
+    "href": "posts/calibration_curve/index.html#gaussian-naive-bayes",
+    "title": "Calibration Curves for Multiple Models",
+    "section": "Gaussian Naive Bayes",
+    "text": "Gaussian Naive Bayes\n\nrtichokescikit-learn\n\n\n\nfrom rtichoke import create_calibration_curve\n\ncreate_calibration_curve(\n    probs={\n        \"Logistic\": y_proba_lr,\n        \"Naive Bayes\": y_proba_gnb,\n        \"Naive Bayes + Isotonic\": y_proba_gnb_isotonic,\n        \"Naive Bayes + Sigmoid\": y_proba_gnb_sigmoid,\n    },\n    reals=y_test\n).show(config={\"displayModeBar\": False, \"displaylogo\": False})\n\n                                                \n\n\n\n\n\nimport matplotlib.pyplot as plt\nfrom matplotlib.gridspec import GridSpec\nfrom sklearn.calibration import CalibrationDisplay\n\nclf_list = [\n    (lr, \"Logistic\"),\n    (gnb, \"Naive Bayes\"),\n    (gnb_isotonic, \"Naive Bayes + Isotonic\"),\n    (gnb_sigmoid, \"Naive Bayes + Sigmoid\"),\n]\n\nfig = plt.figure(figsize=(10, 10))\ngs = GridSpec(4, 2)\ncolors = plt.get_cmap(\"Dark2\")\n\nax_calibration_curve = fig.add_subplot(gs[:2, :2])\ncalibration_displays = {}\nfor i, (clf, name) in enumerate(clf_list):\n    display = CalibrationDisplay.from_estimator(\n        clf,\n        X_test,\n        y_test,\n        n_bins=10,\n        name=name,\n        ax=ax_calibration_curve,\n        color=colors(i),\n    )\n    calibration_displays[name] = display\n\nax_calibration_curve.grid()\nax_calibration_curve.set_title(\"Calibration plots (Naive Bayes)\")\n\ngrid_positions = [(2, 0), (2, 1), (3, 0), (3, 1)]\nfor i, (_, name) in enumerate(clf_list):\n    row, col = grid_positions[i]\n    ax = fig.add_subplot(gs[row, col])\n\n    ax.hist(\n        calibration_displays[name].y_prob,\n        range=(0, 1),\n        bins=10,\n        label=name,\n        color=colors(i),\n    )\n    ax.set(title=name, xlabel=\"Mean predicted probability\", ylabel=\"Count\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "posts/calibration_curve/index.html#linear-svc",
+    "href": "posts/calibration_curve/index.html#linear-svc",
+    "title": "Calibration Curves for Multiple Models",
+    "section": "Linear SVC",
+    "text": "Linear SVC\n\nrtichokescikit-learn\n\n\n\ncreate_calibration_curve(\n    probs={\n        \"Logistic\": y_proba_lr,\n        \"SVC\": y_proba_svc,\n        \"SVC + Isotonic\": y_proba_svc_isotonic,\n        \"SVC + Sigmoid\": y_proba_svc_sigmoid,\n    },\n    reals=y_test\n).show(config={\"displayModeBar\": False, \"displaylogo\": False})\n\n                                                \n\n\n\n\n\nclf_list = [\n    (lr, \"Logistic\"),\n    (svc, \"SVC\"),\n    (svc_isotonic, \"SVC + Isotonic\"),\n    (svc_sigmoid, \"SVC + Sigmoid\"),\n]\n\nfig = plt.figure(figsize=(10, 10))\ngs = GridSpec(4, 2)\n\nax_calibration_curve = fig.add_subplot(gs[:2, :2])\ncalibration_displays = {}\nfor i, (clf, name) in enumerate(clf_list):\n    display = CalibrationDisplay.from_estimator(\n        clf,\n        X_test,\n        y_test,\n        n_bins=10,\n        name=name,\n        ax=ax_calibration_curve,\n        color=colors(i),\n    )\n    calibration_displays[name] = display\n\nax_calibration_curve.grid()\nax_calibration_curve.set_title(\"Calibration plots (SVC)\")\n\n# Add histogram\ngrid_positions = [(2, 0), (2, 1), (3, 0), (3, 1)]\nfor i, (_, name) in enumerate(clf_list):\n    row, col = grid_positions[i]\n    ax = fig.add_subplot(gs[row, col])\n\n    ax.hist(\n        calibration_displays[name].y_prob,\n        range=(0, 1),\n        bins=10,\n        label=name,\n        color=colors(i),\n    )\n    ax.set(title=name, xlabel=\"Mean predicted probability\", ylabel=\"Count\")\n\nplt.tight_layout()\nplt.show()"
+  }
+]
