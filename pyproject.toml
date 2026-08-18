@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "lifelines>=0.30.0",
     "matplotlib>=3.10.7",
-    "rtichoke @ git+https://github.com/uriahf/rtichoke_python.git@1e9e1cf",
+    "rtichoke @ git+https://github.com/uriahf/rtichoke_python.git@main",
     "scikit-learn>=1.7.2",
 ]
 
@@ -16,4 +16,5 @@ dev = [
     "ipykernel>=7.1.0",
     "jupyter>=1.1.1",
     "nbformat>=5.10.4",
+    "quarto-cli>=1.10.18",
 ]

@@ -125,19 +125,25 @@ create_calibration_curve_times(
     reals=validation["event"].to_numpy(),
     times=validation["time"].to_numpy(),
     fixed_time_horizons=administrative_horizons,
+    heuristics_sets=[
+        {
+            "censoring_heuristic": "adjusted",
+            "competing_heuristic": "adjusted_as_negative",
+        }
+    ],
     calibration_type="discrete",
 ).show(config={"displayModeBar": False, "displaylogo": False})
 ```
 
 ### Smoothed
 
-For each patient, `rtichoke` calculates a leave-one-out Kaplan–Meier pseudo-observation:
+For smooth calibration, `rtichoke` fits a secondary Cox model with a **3-knot restricted cubic spline** of the cloglog-transformed prediction
 
 $$
-PO_i(t)=n\widehat{F}(t)-(n-1)\widehat{F}_{-i}(t)
+x_i = \log\{-\log(1-\hat p_i)\}
 $$
 
-It then smooths these values against predicted risk.
+as its sole predictor. Predictions from this model at horizon $t$ form the smooth calibration curve.
 
 ```{python}
 create_calibration_curve_times(
@@ -145,7 +151,14 @@ create_calibration_curve_times(
     reals=validation["event"].to_numpy(),
     times=validation["time"].to_numpy(),
     fixed_time_horizons=administrative_horizons,
+    heuristics_sets=[
+        {
+            "censoring_heuristic": "adjusted",
+            "competing_heuristic": "adjusted_as_negative",
+        }
+    ],
     calibration_type="smooth",
+    smooth_method="secondary_cox",
 ).show(config={"displayModeBar": False, "displaylogo": False})
 ```
 
