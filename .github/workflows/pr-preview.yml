@@ -34,7 +34,7 @@ jobs:
           r-version: "release"
 
       - name: Install Python dependencies
-        run: uv sync --frozen
+        run: uv sync
 
       - name: Validate censored calibration against R
         run: |
