@@ -2180,7 +2180,7 @@ wheels = [
 [[package]]
 name = "rtichoke"
 version = "0.1.35"
-source = { git = "https://github.com/uriahf/rtichoke_python.git?rev=a158fdcc1e8ae94e5e9738a2e760de82f24e5ecd#a158fdcc1e8ae94e5e9738a2e760de82f24e5ecd" }
+source = { git = "https://github.com/uriahf/rtichoke_python.git?rev=main#5cc499954fba8d61d0e5670fc2600941704da807" }
 dependencies = [
     { name = "great-tables" },
     { name = "marimo" },
@@ -2190,6 +2190,7 @@ dependencies = [
     { name = "polarstate" },
     { name = "pyarrow" },
     { name = "reactable" },
+    { name = "smoothstate" },
     { name = "statsmodels" },
     { name = "typing" },
 ]
@@ -2217,7 +2218,7 @@ dev = [
 requires-dist = [
     { name = "lifelines", specifier = ">=0.30.0" },
     { name = "matplotlib", specifier = ">=3.10.7" },
-    { name = "rtichoke", git = "https://github.com/uriahf/rtichoke_python.git?rev=a158fdcc1e8ae94e5e9738a2e760de82f24e5ecd" },
+    { name = "rtichoke", git = "https://github.com/uriahf/rtichoke_python.git?rev=main" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
 ]
 
@@ -2343,6 +2344,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
+]
+
+[[package]]
+name = "smoothstate"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "polars" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c8/38/a6438743df7c506aa7120166fcf40dc64ab2c1f5edd28f5b42f0a9223590/smoothstate-0.1.0.tar.gz", hash = "sha256:523853765dfaa96c558cc5e80b58bb63452cb52c7a4828897aa29c021659ebfb", size = 11590, upload-time = "2026-08-19T09:01:23.549Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/67/4c/61ef15e3bd5eb79a659472d77ba1945b67698355cb816f2c2ef5e30dd4b0/smoothstate-0.1.0-py3-none-any.whl", hash = "sha256:01b8298c695836fff35bd24836aade93fe1ceea230711fdd45f424ec54beab65", size = 5763, upload-time = "2026-08-19T09:01:22.292Z" },
 ]
 
 [[package]]
